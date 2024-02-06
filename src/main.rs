@@ -9,7 +9,8 @@ mod triangle_bary;
 use tgaimage::*;
 use line::*;
 use obj::*;
-use triangle_linesweep::*;
+use triangle_bary::*;
+//use triangle_linesweep::*;
 use std::time;
 use types::*;
 
@@ -18,7 +19,6 @@ use types::*;
 fn main() {
     let (height, width) = (200, 200);
     let mut image: Image<RGB> = Image::new(height, width);
-    let mut image2: Image<RGB> = Image::new(height, width);
 
     let mut f1 = Face {vertices: [
         Vertex::new(10.0, 70.0, 0.0),
@@ -49,7 +49,6 @@ fn main() {
     // end of timed block //
 
     image.write_tga_file("img.tga", true, true).unwrap();
-    image2.write_tga_file("img2.tga", true, true).unwrap();
 }
 
 
