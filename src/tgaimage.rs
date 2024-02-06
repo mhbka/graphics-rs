@@ -79,8 +79,8 @@ unsafe fn any_as_u8_slice<T: Sized>(p: &T) -> &[u8] {
 }
 
 pub struct Image <T: ColorSpace> {
-    width: usize,
-    height: usize,
+    pub width: usize,
+    pub height: usize,
     data: Vec<T>
 }
 
@@ -97,7 +97,7 @@ impl <T: ColorSpace + Copy> Image<T>  {
 
     pub fn set(&mut self, x: usize, y: usize, color: T) -> Result<(), String> {
         if x>=self.width || y>=self.height {
-            return Err(format!("OOB pixel coordinate: {x} by {y}"));
+            return Err(format!("OOB pixel coordinate: {x} by {y} ({} by {})", self.width, self.height));
         }
         self.data[x + y*self.width] = color;
         Ok(())
