@@ -75,9 +75,17 @@ struct Header {
 
 // converts sized type to raw u8, for writing out
 pub unsafe fn any_as_u8_slice<T: Sized>(p: &T) -> &[u8] {
-    ::std::slice::from_raw_parts((p as *const T) as *const u8, ::std::mem::size_of::<T>())
+    std::slice::from_raw_parts((p as *const T) as *const u8, ::std::mem::size_of::<T>())
 }
 
+// inverse of above fn
+pub unsafe fn u8_slice_as_any<T>(slice: &[u8]) -> &T {
+    assert_eq!(slice.len(), ::std::mem::size_of::<T>());
+    &*(slice.as_ptr() as *const T)
+}
+
+/// Represents a TGA image.
+/// I'm too lazy to write a fn to read from file, use tinytga instead for that.
 pub struct Image <T: ColorSpace> {
     pub width: usize,
     pub height: usize,
@@ -193,9 +201,5 @@ impl <T: ColorSpace + Copy> Image<T>  {
             )?;
         }
         Ok(())
-    }
-
-    pub fn read_tga_file(filepath: &str) -> Self {
-        
     }
 }       
