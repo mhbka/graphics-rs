@@ -128,6 +128,15 @@ fn parse_texture(input: &str) -> IResult<&str, Vec3Df> {
 }   
 
 // texture face parsing
-fn parse_texture_face(input: &str, ) -> IResult<&str, > {
+fn parse_texture_face<'a> (input: &'a str, texture_vertices: &Vec3Df) -> IResult<&'a str, [usize; 3]> {
+    let (input, _) = tag("f")(input)?;
+    let (input, _) = multispace0(input)?;
     
+    let (input, v1_vec) = separated_list0(tag("/"), map_res(digit1, str::parse::<usize>))(input)?;
+    let (input, _) = multispace0(input)?;
+    let (input, v2_vec) = separated_list0(tag("/"), map_res(digit1, str::parse::<usize>))(input)?;
+    let (input, _) = multispace0(input)?;
+    let (input, v3_vec) = separated_list0(tag("/"), map_res(digit1, str::parse::<usize>))(input)?;
+
+    Ok((input, [v1_vec[1], v2_vec[1], v3_vec[1]]))
 }
