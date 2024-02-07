@@ -1,6 +1,7 @@
 use std::fs;
+use rand;
 use crate::tgaimage::*;
-use crate::line::*;
+use crate::triangle_bary::*;
 use crate::types::*;
 use nom::{
     bytes::complete::tag,
@@ -12,37 +13,51 @@ use nom::{
     IResult,
 };
 
-
-pub fn draw_obj<T>(filepath: &str, image: &mut Image<T>, color: T)
-where T: ColorSpace + Copy {
+// draw the object into the tga image
+pub fn draw_obj(filepath: &str, image: &mut Image<RGB>) {
     let faces = parse_obj(filepath);
-    let translation = 1.0;
-    let scaling = 2.0;
-    let mut err_vert = 0;
-
     for face in faces {
-        for i in 0..face.vertices.len() {
-            let v0 = &face.vertices[i];
-            let v1 = &face.vertices[(i+1) % face.vertices.len()];
-            
-            let start = Coord {
-                x: ((v0.x+translation) * image.width as f32/scaling) as i32,
-                y: ((v0.y+translation) * image.height as f32/scaling) as i32
-            };
+        // calculate vector of 2 sides of the face
+        let side_1 = Vec3Df {
+            x: face.vertices[1].x - face.vertices[0].x,
+            y: face.vertices[1].y - face.vertices[0].y,
+            z: face.vertices[1].z - face.vertices[0].z,
+        };
 
-            let end = Coord {
-                x: ((v1.x+translation) * image.width as f32/scaling) as i32,
-                y: ((v1.y+translation) * image.height as f32/scaling) as i32 
-            };
+        let side_2 = Vec3Df {
+            x: face.vertices[2].x - face.vertices[0].x,
+            y: face.vertices[2].y - face.vertices[0].y,
+            z: face.vertices[2].z - face.vertices[0].z,
+        };
 
-            match line(image, start, end, color) {
-                Ok(_) => continue,
-                Err(_) => err_vert+=1,
+        // calculate normal of the face using the 2 sides, and normalize
+        let mut normal = side_1.cross_product(&side_2);
+        normal.normalize();
+
+        // calculate weight of light (scalar product of normal + z-coordinate)
+        let light = Vec3Df {x:0.0, y:0.0, z:1.0};
+        let intensity = normal.scalar_product(&light);
+        if intensity > 0.0 {
+            let color = RGB {
+                r: (255.0*intensity) as u8,
+                g: (255.0*intensity) as u8,
+                b: (255.0*intensity) as u8,
             };
+    
+            // remove z component (for now)
+            let coords = face.vertices.map(|v| {
+                Vec2Di { x: ((v.x+1.0)*image.width as f32 / 2.0) as i32, 
+                        y: ((v.y+1.0)*image.height as f32 / 2.0) as i32
+                    }
+            });
+    
+            triangle(image, &coords, color);
         }
+        
     }
 }
 
+// parse the object from file
 pub fn parse_obj(filepath: &str) -> Vec<Face> { 
     let contents = fs::read_to_string(filepath)
         .expect(&format!("No filepath: {filepath}")[..]);
@@ -52,8 +67,8 @@ pub fn parse_obj(filepath: &str) -> Vec<Face> {
 
     for line in contents.lines() {
         if line.starts_with("v ") {
-            match parse_vertex(&line) {
-                Ok((_, vertex)) => vertices.push(vertex),
+            match parse_Vec3Df(&line) {
+                Ok((_, Vec3Df)) => vertices.push(Vec3Df),
                 Err(_) => continue
             }
         }
@@ -76,18 +91,18 @@ pub fn parse_obj(filepath: &str) -> Vec<Face> {
     faces   
 }
 
-// Vertex parsing
+// Vec3Df parsing
 
-fn parse_vertex(input: &str) -> IResult<&str, Vertex> {
+fn parse_Vec3Df(input: &str) -> IResult<&str, Vec3Df> {
     let (input, _) = char('v')(input)?;
     let (input, _) = multispace0(input)?;
     let (input, (x, _, y, _, z)) = tuple((float, space1, float, space1, float))(input)?;
-    Ok((input, Vertex { x, y, z }))
+    Ok((input, Vec3Df { x, y, z }))
 }
 
 // Face parsing
 
-fn parse_face<'a>(input: &'a str, vertices: &Vec<Vertex>) -> IResult<&'a str, Vec<Face>> {
+fn parse_face<'a>(input: &'a str, vertices: &Vec<Vec3Df>) -> IResult<&'a str, Vec<Face>> {
     let (input, _) = char('f')(input)?;
     let (input, _) = multispace0(input)?;
 
