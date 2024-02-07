@@ -5,19 +5,13 @@ mod types;
 mod colors;
 mod triangle_linesweep;
 mod triangle_bary;
-mod rasterize;
 
 use tgaimage::*;
 use line::*;
-use rasterize::*;
-
-          
 //use triangle_linesweep::*;     <- i broke it
 use std::time;
 use types::*;
-
 use crate::obj::draw_obj;
-
 
 
 fn main() {
@@ -34,6 +28,7 @@ fn main() {
 
     println!("{:?}", time_taken);
     image.write_tga_file("img.tga", true, true).unwrap();
+
 }
 
 

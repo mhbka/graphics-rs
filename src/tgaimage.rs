@@ -74,14 +74,14 @@ struct Header {
 ///// Image
 
 // converts sized type to raw u8, for writing out
-unsafe fn any_as_u8_slice<T: Sized>(p: &T) -> &[u8] {
+pub unsafe fn any_as_u8_slice<T: Sized>(p: &T) -> &[u8] {
     ::std::slice::from_raw_parts((p as *const T) as *const u8, ::std::mem::size_of::<T>())
 }
 
 pub struct Image <T: ColorSpace> {
     pub width: usize,
     pub height: usize,
-    data: Vec<T>
+    pub data: Vec<T>
 }
 
 const MAX_CHUNK_LENGTH: u8 = 128;
@@ -193,5 +193,9 @@ impl <T: ColorSpace + Copy> Image<T>  {
             )?;
         }
         Ok(())
+    }
+
+    pub fn read_tga_file(filepath: &str) -> Self {
+        
     }
 }       

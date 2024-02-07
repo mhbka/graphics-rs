@@ -57,18 +57,23 @@ pub fn parse_obj(filepath: &str) -> Vec<Face> {
         .expect(&format!("No filepath: {filepath}")[..]);
 
     let mut vertices = Vec::new();
+    let mut texture_vertices = Vec::new();
     let mut faces = Vec::new();
+    // let mut texture_faces = Vec::new();
 
     for line in contents.lines() {
         if line.starts_with("v ") {
-            match parse_Vec3Df(&line) {
-                Ok((_, Vec3Df)) => vertices.push(Vec3Df),
+            match parse_vertex(&line) {
+                Ok((_, vec)) => vertices.push(vec),
                 Err(_) => continue
             }
         }
 
         else if line.starts_with("vt ") {
-            //ignore
+            match parse_texture(&line) {
+                Ok((_, vec)) => texture_vertices.push(vec),
+                Err(_) => continue
+            }
         }
 
         else if line.starts_with("vn ") {
@@ -85,17 +90,15 @@ pub fn parse_obj(filepath: &str) -> Vec<Face> {
     faces   
 }
 
-// Vec3Df parsing
-
-fn parse_Vec3Df(input: &str) -> IResult<&str, Vec3Df> {
+// vertex parsing
+fn parse_vertex(input: &str) -> IResult<&str, Vec3Df> {
     let (input, _) = char('v')(input)?;
     let (input, _) = multispace0(input)?;
     let (input, (x, _, y, _, z)) = tuple((float, space1, float, space1, float))(input)?;
     Ok((input, Vec3Df { x, y, z }))
 }
 
-// Face parsing
-
+// face parsing
 fn parse_face<'a>(input: &'a str, vertices: &Vec<Vec3Df>) -> IResult<&'a str, Vec<Face>> {
     let (input, _) = char('f')(input)?;
     let (input, _) = multispace0(input)?;
@@ -112,4 +115,19 @@ fn parse_face<'a>(input: &'a str, vertices: &Vec<Vec3Df>) -> IResult<&'a str, Ve
     //faces.push(Face {v1: vertices[v1_vec[2]-1], v2: vertices[v2_vec[2]-1], v3: vertices[v3_vec[2]-1]});
 
     Ok((input, faces))
+}
+
+// texture parsing
+fn parse_texture(input: &str) -> IResult<&str, Vec3Df> {
+    let (input, _) = tag("vt")(input)?;
+    let (input, _) = multispace0(input)?;
+    let (input, (x, _, y, _, z)) = tuple((float, space1, float, space1, float))(input)?;
+
+    // Note: z seems to always be 0, but we need to store f32 so we use Vec3Df anyway
+    Ok((input, Vec3Df { x, y, z }))
+}   
+
+// texture face parsing
+fn parse_texture_face(input: &str, ) -> IResult<&str, > {
+    
 }

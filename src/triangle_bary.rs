@@ -26,6 +26,8 @@ fn barycentric(vertex: &[Vec2Di; 3], p: &Vec2Di) -> Vec3Df {
 // Triangle rasterization function with depth buffer
 pub fn triangle<T>(image: &mut Image<T>, face: Face,  color: T, zbuffer: &mut Vec<f32>) 
 where T: ColorSpace + Copy {
+
+    // scale [0,1] coords into image pixel coords
     let face_2d = face.vertices.map(|v| {
         Vec2Di {
             x: ((1.0 + v.x)*image.width as f32 / 2.0) as i32,
@@ -33,6 +35,7 @@ where T: ColorSpace + Copy {
         }
     });
 
+    // shrink bounding box to rasterize over
     let mut bboxmin = Vec2Di { x: image.width as i32 - 1, y: image.height as i32 - 1 };
     let mut bboxmax = Vec2Di { x: 0, y: 0 };
     let clamp = Vec2Di { x: image.width as i32 - 1, y: image.height as i32 - 1 };
@@ -45,8 +48,7 @@ where T: ColorSpace + Copy {
         bboxmax.y = min(clamp.y, max(bboxmax.y, vertex.y));
     }
 
-    
-
+    // loop over bounding box pixels for valid baryometric + depth buffer check
     for p_x in bboxmin.x .. bboxmax.x {
         for p_y in bboxmin.y .. bboxmax.y {
             let bc_screen = barycentric(&face_2d, &Vec2Di {x: p_x, y: p_y});
