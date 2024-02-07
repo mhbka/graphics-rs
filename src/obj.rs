@@ -15,6 +15,7 @@ use nom::{
 
 // draw the object into the tga image
 pub fn draw_obj(filepath: &str, image: &mut Image<RGB>) {
+    let mut zbuffer = vec![f32::MIN; image.width * image.height];
     let faces = parse_obj(filepath);
     for face in faces {
         // calculate vector of 2 sides of the face
@@ -44,14 +45,7 @@ pub fn draw_obj(filepath: &str, image: &mut Image<RGB>) {
                 b: (255.0*intensity) as u8,
             };
     
-            // remove z component (for now)
-            let coords = face.vertices.map(|v| {
-                Vec2Di { x: ((v.x+1.0)*image.width as f32 / 2.0) as i32, 
-                        y: ((v.y+1.0)*image.height as f32 / 2.0) as i32
-                    }
-            });
-    
-            triangle(image, &coords, color);
+            triangle(image, face, color, &mut zbuffer);
         }
         
     }
