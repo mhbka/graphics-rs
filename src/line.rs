@@ -20,8 +20,8 @@ where T: ColorSpace + Copy {
     }
 
     // difference + error
-    let dx = (end.x - start.x);
-    let dy = (end.y - start.y);
+    let dx = end.x - start.x;
+    let dy = end.y - start.y;
 
     let derror = (dy as f32 / dx as f32).abs();
     let mut error = 0.0;
@@ -34,7 +34,7 @@ where T: ColorSpace + Copy {
 
         error += derror;
         if error > 0.5 {
-            y += (if end.y>start.y {1} else {-1});
+            y += if end.y>start.y {1} else {-1};
             error -= 1.0;
         }       
     }

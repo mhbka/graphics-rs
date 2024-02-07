@@ -1,5 +1,5 @@
 use std::fs;
-use rand;
+
 use crate::tgaimage::*;
 use crate::triangle_bary::*;
 use crate::types::*;
