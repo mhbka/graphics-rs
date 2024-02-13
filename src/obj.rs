@@ -16,17 +16,17 @@ use nom::{
 
 
 // draw the object into the image
-pub fn draw_obj(filepath: &str, image: &mut Image<RGB>) {
+pub fn draw_obj(obj_filepath: &str, texture_filepath: &str, image: &mut Image<RGB>) {
     let mut zbuffer = vec![f32::MIN; image.width * image.height];
 
-    let faces_and_textures = parse_obj(filepath);
+    let faces_and_textures = parse_obj(obj_filepath);
 
-    // TO DO: load the texture image from file
+    let texture_img = convert_from_tinytga(texture_filepath);
     
     for tup in faces_and_textures {
 
         // destruct into the face and texture
-        let (face, texture) = (tup.0, tup.1);
+        let (face, texture_face) = (tup.0, tup.1);
 
         // calculate vector of 2 sides of the face
         let side_1 = Vec3Df {
@@ -44,7 +44,10 @@ pub fn draw_obj(filepath: &str, image: &mut Image<RGB>) {
         // calculate normal of the face using the 2 sides, and normalize
         let mut normal = side_1.cross_product(&side_2);
         normal.normalize();
-
+        
+        /* 
+        this is for shading, but im trying to use texture color rn
+        
         // calculate weight of light (scalar product of normal + z-coordinate)
         let light = Vec3Df {x:0.0, y:0.0, z:1.0};
         let intensity = normal.scalar_product(&light);
@@ -54,9 +57,11 @@ pub fn draw_obj(filepath: &str, image: &mut Image<RGB>) {
                 g: (255.0*intensity) as u8,
                 b: (255.0*intensity) as u8,
             };
-            triangle(image, face, color, &mut zbuffer);
+            triangle(image, &texture_img, face, texture_face, &mut zbuffer);
         }
+         */
         
+        triangle(image, &texture_img, face, texture_face, &mut zbuffer);
     }
 }
 
@@ -65,7 +70,7 @@ pub fn draw_obj(filepath: &str, image: &mut Image<RGB>) {
 // returns a (Face, Face) tuple; the 1st face contains actual vertices, and the 2nd contains texture coordinates (ie, with 0 z-value).
 pub fn parse_obj(filepath: &str) -> Vec<(Face, Face)> { 
     let contents = fs::read_to_string(filepath)
-        .expect(&format!("No filepath: {filepath}")[..]);
+        .expect(&format!("No such file at this filepath: {filepath}")[..]);
 
     let mut vertices = Vec::new();
     let mut texture_coords = Vec::new();
@@ -92,7 +97,7 @@ pub fn parse_obj(filepath: &str) -> Vec<(Face, Face)> {
 
         else if line.starts_with("f ") {
             match parse_face(&line, &vertices, &texture_coords) {
-                Ok((_, (face, face_textures))) => faces_and_textures.push((face, face_textures)),
+                Ok((_, (face, texture_face))) => faces_and_textures.push((face, texture_face)),
                 Err(_) => continue,
             }
         }

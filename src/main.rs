@@ -22,14 +22,14 @@ fn main() {
     // timed block //
     let now = time::Instant::now();
 
-    // decode image with tinytga
-    let mut texture_img = convert_from_tinytga("texture.tga");
+    let mut image = Image::new(1024, 1024);
+    draw_obj("african_head.obj", "texture.tga", &mut image);
 
     let time_taken = now.elapsed();
     // end of timed block //
 
     println!("{:?}", time_taken);
-    texture_img.write_tga_file("img.tga", false, false).unwrap();
+    image.write_tga_file("img.tga", true, false).unwrap();
 
 }
 

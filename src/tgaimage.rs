@@ -3,25 +3,24 @@ use std::{fs::File, io::{self, BufWriter, Write}};
 use tinytga::RawTga;
 
 ///// Colorspaces
-
 pub trait ColorSpace {
     fn new() -> Self;
     const BPP: u8;
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 #[repr(packed)]
 pub struct Grayscale {
     pub i: u8,
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 #[repr(packed)]
 pub struct RGB {
     pub b: u8, pub g: u8, pub r: u8
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 #[repr(packed)]
 pub struct RGBA {
     pub b: u8, pub g: u8, pub r: u8, pub a: u8
@@ -201,25 +200,25 @@ impl <T: ColorSpace + Copy> Image<T>  {
 }       
 
 // converts tinytga image into our format   
-pub fn convert_from_tinytga(filepath: &str) -> Image<RGBA> {
+pub fn convert_from_tinytga(filepath: &str) -> Image<RGB> {
     let data = include_bytes!("../african_head_diffuse.tga");
     let img = RawTga::from_slice(data).unwrap();
     let (height, width) = (img.size().height, img.size().width);
     let raw_pixels: Vec<_> = img.pixels().collect();
-    let mut new_pixels = vec![RGBA::new(); (height*width) as usize];
+    let mut new_pixels = vec![RGB::new(); (height*width) as usize];
     
     for pixel in raw_pixels {
         let (x, y) = (pixel.position.x, pixel.position.y);
         let color = pixel.color;
-        new_pixels[(x + y*width as i32) as usize] = RGBA {
+        new_pixels[(x + y*width as i32) as usize] = RGB {
             b: (color & 0xFF) as u8,
             g: ((color >> 8) & 0xFF) as u8,
             r: ((color >> 16) & 0xFF) as u8,
-            a: ((color >> 24) & 0xFF) as u8
+            // a: ((color >> 24) & 0xFF) as u8
         };
     }
 
-    let mut image: Image<RGBA> = Image::new(width as usize, height as usize);
+    let mut image: Image<RGB> = Image::new(width as usize, height as usize);
     image.data = new_pixels;
     image
 }
