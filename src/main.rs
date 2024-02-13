@@ -18,22 +18,18 @@ use tinytga::{RawTga};
 
 
 fn main() {
-    let (height, width) = (1000, 1000);
-    let mut image: Image<RGB> = Image::new(height, width);
 
     // timed block //
     let now = time::Instant::now();
 
-    let data = include_bytes!("../african_head_diffuse.tga");
-    let img = RawTga::from_slice(data).unwrap();
-    let texture: Vec<_> = img.pixels().collect();
-    // TO DO: fn for converting tinytga RawPixel into our pixel format
+    // decode image with tinytga
+    let mut texture_img = convert_from_tinytga("texture.tga");
 
     let time_taken = now.elapsed();
     // end of timed block //
 
     println!("{:?}", time_taken);
-    image.write_tga_file("img.tga", true, true).unwrap();
+    texture_img.write_tga_file("img.tga", false, false).unwrap();
 
 }
 

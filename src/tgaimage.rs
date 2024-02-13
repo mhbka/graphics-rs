@@ -1,5 +1,7 @@
 use std::{fs::File, io::{self, BufWriter, Write}};
 
+use tinytga::RawTga;
+
 ///// Colorspaces
 
 pub trait ColorSpace {
@@ -76,12 +78,6 @@ struct Header {
 // converts sized type to raw u8, for writing out
 pub unsafe fn any_as_u8_slice<T: Sized>(p: &T) -> &[u8] {
     std::slice::from_raw_parts((p as *const T) as *const u8, ::std::mem::size_of::<T>())
-}
-
-// inverse of above fn
-pub unsafe fn u8_slice_as_any<T>(slice: &[u8]) -> &T {
-    assert_eq!(slice.len(), ::std::mem::size_of::<T>());
-    &*(slice.as_ptr() as *const T)
 }
 
 /// Represents a TGA image.
@@ -203,3 +199,27 @@ impl <T: ColorSpace + Copy> Image<T>  {
         Ok(())
     }
 }       
+
+// converts tinytga image into our format   
+pub fn convert_from_tinytga(filepath: &str) -> Image<RGBA> {
+    let data = include_bytes!("../african_head_diffuse.tga");
+    let img = RawTga::from_slice(data).unwrap();
+    let (height, width) = (img.size().height, img.size().width);
+    let raw_pixels: Vec<_> = img.pixels().collect();
+    let mut new_pixels = vec![RGBA::new(); (height*width) as usize];
+    
+    for pixel in raw_pixels {
+        let (x, y) = (pixel.position.x, pixel.position.y);
+        let color = pixel.color;
+        new_pixels[(x + y*width as i32) as usize] = RGBA {
+            b: (color & 0xFF) as u8,
+            g: ((color >> 8) & 0xFF) as u8,
+            r: ((color >> 16) & 0xFF) as u8,
+            a: ((color >> 24) & 0xFF) as u8
+        };
+    }
+
+    let mut image: Image<RGBA> = Image::new(width as usize, height as usize);
+    image.data = new_pixels;
+    image
+}
