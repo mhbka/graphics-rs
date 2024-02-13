@@ -33,7 +33,7 @@ fn bary_to_point(bc_vertex: &Vec3Df, vertices: &[Vec2Di; 3]) -> Vec2Di {
 }
 
 // Triangle rasterization function with depth buffer + texture
-pub fn triangle<T>(image: &mut Image<T>, texture_image: &Image<T>, face: Face, texture_face: Face, zbuffer: &mut Vec<f32>) 
+pub fn triangle<T>(image: &mut Image<T>, texture_image: &mut Image<T>, face: Face, texture_face: Face, zbuffer: &mut Vec<f32>, intensity: f32) 
 where T: ColorSpace + Copy + std::fmt::Debug {
 
     // scale [0,1] coords into image pixel coords
@@ -45,7 +45,7 @@ where T: ColorSpace + Copy + std::fmt::Debug {
     });
 
     // scale texture image too (idk why but this one doesn't use transform + scaling like above)
-    // also requires VFLIP THE TEXTURE ? wat dafuq
+    // also requires VFLIPPING ? wat dafuq
     let texture_face_2d = texture_face.vertices.map(|v|{
         Vec2Di {
             x: (v.x*texture_image.width as f32) as i32,
@@ -83,9 +83,8 @@ where T: ColorSpace + Copy + std::fmt::Debug {
 
                 // use barycentric coordinates to locate corresponding pixel within texture_face in texture_img
                 let texture_pixel_coord = bary_to_point(&bc_screen, &texture_face_2d);
-                let texture_color = texture_image.data[(texture_pixel_coord.x + texture_pixel_coord.y*texture_image.height as i32) as usize];
-                
-                // println!("{:?}: {:?}", texture_pixel_coord, texture_color);
+                let mut texture_color = texture_image.data[(texture_pixel_coord.x + texture_pixel_coord.y*texture_image.height as i32) as usize];
+                texture_color.shade(intensity);
 
                 // set actual pixel with texture pixel's color
                 zbuffer[(p_x + p_y*image.width as i32) as usize] = p_z;

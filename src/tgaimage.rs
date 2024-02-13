@@ -5,6 +5,7 @@ use tinytga::RawTga;
 ///// Colorspaces
 pub trait ColorSpace {
     fn new() -> Self;
+    fn shade(&mut self, intensity: f32);
     const BPP: u8;
 }
 
@@ -30,12 +31,22 @@ impl ColorSpace for Grayscale {
     fn new() -> Self {
         Grayscale {i: 0}
     }
+    fn shade(&mut self, intensity: f32) {
+        if intensity > 1.0 { return }
+        self.i = ((self.i as f32) * intensity) as u8;
+    }
     const BPP: u8 = 1;
 }
 
 impl ColorSpace for RGB {
     fn new() -> Self {
         RGB {r: 0, g: 0, b: 0}
+    }
+    fn shade(&mut self, intensity: f32) {
+        if intensity > 1.0 { return }
+        self.r = ((self.r as f32) * intensity) as u8;
+        self.g = ((self.g as f32) * intensity) as u8;
+        self.b = ((self.b as f32) * intensity) as u8;
     }
     const BPP: u8 = 3;
 }
@@ -44,6 +55,13 @@ impl ColorSpace for RGB {
 impl ColorSpace for RGBA {
     fn new() -> Self {
         RGBA {r: 0, g: 0, b: 0, a: 0}
+    }
+    fn shade(&mut self, intensity: f32) {
+        if intensity > 1.0 { return }
+        self.r = ((self.r as f32) * intensity) as u8;
+        self.g = ((self.g as f32) * intensity) as u8;
+        self.b = ((self.b as f32) * intensity) as u8;
+        self.a = ((self.a as f32) * intensity) as u8;
     }
     const BPP: u8 = 4;
 }

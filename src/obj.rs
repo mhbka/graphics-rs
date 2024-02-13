@@ -21,7 +21,7 @@ pub fn draw_obj(obj_filepath: &str, texture_filepath: &str, image: &mut Image<RG
 
     let faces_and_textures = parse_obj(obj_filepath);
 
-    let texture_img = convert_from_tinytga(texture_filepath);
+    let mut texture_img = convert_from_tinytga(texture_filepath);
     
     for tup in faces_and_textures {
 
@@ -44,24 +44,13 @@ pub fn draw_obj(obj_filepath: &str, texture_filepath: &str, image: &mut Image<RG
         // calculate normal of the face using the 2 sides, and normalize
         let mut normal = side_1.cross_product(&side_2);
         normal.normalize();
-        
-        /* 
-        this is for shading, but im trying to use texture color rn
-        
+            
         // calculate weight of light (scalar product of normal + z-coordinate)
         let light = Vec3Df {x:0.0, y:0.0, z:1.0};
         let intensity = normal.scalar_product(&light);
         if intensity > 0.0 {
-            let color = RGB {
-                r: (255.0*intensity) as u8,
-                g: (255.0*intensity) as u8,
-                b: (255.0*intensity) as u8,
-            };
-            triangle(image, &texture_img, face, texture_face, &mut zbuffer);
+            triangle(image, &mut texture_img, face, texture_face, &mut zbuffer, intensity);
         }
-         */
-        
-        triangle(image, &texture_img, face, texture_face, &mut zbuffer);
     }
 }
 
