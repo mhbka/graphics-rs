@@ -19,11 +19,12 @@ use tinytga::{RawTga};
 
 fn main() {
 
+    let mut image = Image::new(1024, 1024);
+
     // timed block //
     let now = time::Instant::now();
 
-    let mut image = Image::new(1024, 1024);
-    draw_obj("african_head.obj", "texture.tga", &mut image);
+    draw_obj("african_head.obj", &mut image);
 
     let time_taken = now.elapsed();
     // end of timed block //

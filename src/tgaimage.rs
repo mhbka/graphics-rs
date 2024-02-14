@@ -218,8 +218,8 @@ impl <T: ColorSpace + Copy> Image<T>  {
 }       
 
 // converts tinytga image into our format   
-pub fn convert_from_tinytga(filepath: &str) -> Image<RGB> {
-    let data = include_bytes!("../african_head_diffuse.tga");
+pub fn convert_from_tinytga() -> Image<RGB> {
+    let data = include_bytes!("../texture.tga");
     let img = RawTga::from_slice(data).unwrap();
     let (height, width) = (img.size().height, img.size().width);
     let raw_pixels: Vec<_> = img.pixels().collect();

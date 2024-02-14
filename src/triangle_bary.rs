@@ -3,7 +3,6 @@ use crate::tgaimage::*;
 use std::cmp::{min, max};
 
 
-
 // Calculate barycentric weights, given 3 vertices and a point
 fn barycentric(vertices: &[Vec2Di; 3], p: &Vec2Di) -> Vec3Df {
     let a = Vec3Df { x: vertices[2].x as f32 - vertices[0].x as f32, y: vertices[1].x as f32 - vertices[0].x as f32, z: vertices[0].x as f32 - p.x as f32 };
@@ -24,6 +23,7 @@ fn barycentric(vertices: &[Vec2Di; 3], p: &Vec2Di) -> Vec3Df {
     }
 }
 
+
 // Convert barycentric coords into a 3D point
 fn bary_to_point(bc_vertex: &Vec3Df, vertices: &[Vec2Di; 3]) -> Vec2Di {
     Vec2Di {
@@ -32,11 +32,30 @@ fn bary_to_point(bc_vertex: &Vec3Df, vertices: &[Vec2Di; 3]) -> Vec2Di {
     }
 }
 
-// Triangle rasterization function with depth buffer + texture
-pub fn triangle<T>(image: &mut Image<T>, texture_image: &mut Image<T>, face: Face, texture_face: Face, zbuffer: &mut Vec<f32>, intensity: f32) 
+
+// Triangle rasterization function with depth buffer + texture + perspective etc
+pub fn triangle<T>(
+    image: &mut Image<T>, 
+    texture_image: &mut Image<T>, 
+    face: &mut Face, 
+    texture_face: Face, 
+    zbuffer: &mut Vec<f32>, 
+    intensity: f32
+) 
 where T: ColorSpace + Copy + std::fmt::Debug {
 
-    // scale [0,1] coords into image pixel coords
+    let c = -1.5; // distance from camera
+
+    // transformation; perspective of camera from z=5 (i think)
+    face.vertices = face.vertices.map(|v| {
+        Vec3Df {
+            x: v.x / (1.0 - (v.y/c)),
+            y: v.y / (1.0 - (v.y/c)),
+            z: v.z / (1.0 - (v.y/c))
+        }
+    }); 
+
+    // scale [0,1] coords into image size
     let face_2d = face.vertices.map(|v| {
         Vec2Di {
             x: ((1.0 + v.x)*image.width as f32 / 2.0) as i32,

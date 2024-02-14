@@ -16,17 +16,17 @@ use nom::{
 
 
 // draw the object into the image
-pub fn draw_obj(obj_filepath: &str, texture_filepath: &str, image: &mut Image<RGB>) {
+pub fn draw_obj(obj_filepath: &str, image: &mut Image<RGB>) {
     let mut zbuffer = vec![f32::MIN; image.width * image.height];
 
     let faces_and_textures = parse_obj(obj_filepath);
 
-    let mut texture_img = convert_from_tinytga(texture_filepath);
+    let mut texture_img = convert_from_tinytga();
     
     for tup in faces_and_textures {
 
         // destruct into the face and texture
-        let (face, texture_face) = (tup.0, tup.1);
+        let (mut face, mut texture_face) = (tup.0, tup.1);
 
         // calculate vector of 2 sides of the face
         let side_1 = Vec3Df {
@@ -49,7 +49,7 @@ pub fn draw_obj(obj_filepath: &str, texture_filepath: &str, image: &mut Image<RG
         let light = Vec3Df {x:0.0, y:0.0, z:1.0};
         let intensity = normal.scalar_product(&light);
         if intensity > 0.0 {
-            triangle(image, &mut texture_img, face, texture_face, &mut zbuffer, intensity);
+            triangle(image, &mut texture_img, &mut face, texture_face, &mut zbuffer, intensity);
         }
     }
 }
