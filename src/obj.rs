@@ -1,4 +1,5 @@
 use std::fs;
+use nalgebra_glm::*;
 
 use crate::tgaimage::*;
 use crate::triangle_bary::*;
@@ -26,10 +27,10 @@ pub fn draw_obj(obj_filepath: &str, image: &mut Image<RGB>) {
     for tup in faces_and_textures {
 
         // destruct into the face and texture
-        let (mut face, mut texture_face) = (tup.0, tup.1);
+        let (mut face, texture_face) = (tup.0, tup.1);
 
         // calculate vector of 2 sides of the face
-        let side_1 = Vec3Df {
+        let side_1 = glm::Vec3::new() {
             x: face.vertices[1].x - face.vertices[0].x,
             y: face.vertices[1].y - face.vertices[0].y,
             z: face.vertices[1].z - face.vertices[0].z,
@@ -44,6 +45,8 @@ pub fn draw_obj(obj_filepath: &str, image: &mut Image<RGB>) {
         // calculate normal of the face using the 2 sides, and normalize
         let mut normal = side_1.cross_product(&side_2);
         normal.normalize();
+
+        let rrr = glm::vec3();
             
         // calculate weight of light (scalar product of normal + z-coordinate)
         let light = Vec3Df {x:0.0, y:0.0, z:1.0};

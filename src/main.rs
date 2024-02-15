@@ -3,12 +3,11 @@ mod line;
 mod obj;
 mod types;
 mod colors;
-mod triangle_linesweep;
 mod triangle_bary;
 
+use nalgebra_glm::*;
 use tgaimage::*;
 use line::*;
-//use triangle_linesweep::*;     <- i broke it
 use std::time;
 use types::*;
 use crate::obj::draw_obj;
