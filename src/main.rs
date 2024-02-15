@@ -5,7 +5,6 @@ mod types;
 mod colors;
 mod triangle_bary;
 
-use nalgebra_glm::*;
 use tgaimage::*;
 use line::*;
 use std::time;

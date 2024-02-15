@@ -1,34 +1,34 @@
-use crate::types::*;
+// use crate::types::*;
 use crate::tgaimage::*;
+use glam::*;
 use std::cmp::{min, max};
 
 
 // Calculate barycentric weights, given 3 vertices and a point
-fn barycentric(vertices: &[Vec2Di; 3], p: &Vec2Di) -> Vec3Df {
-    let a = Vec3Df { x: vertices[2].x as f32 - vertices[0].x as f32, y: vertices[1].x as f32 - vertices[0].x as f32, z: vertices[0].x as f32 - p.x as f32 };
-    let b = Vec3Df { x: vertices[2].y as f32 - vertices[0].y as f32, y: vertices[1].y as f32 - vertices[0].y as f32, z: vertices[0].y as f32 - p.y as f32 };
-
-    let u = a.cross_product(&b);
+fn barycentric(vertices: &[Vec2; 3], p: &Vec2) -> Vec3 {
+    let a = Vec3::new(vertices[2].x - vertices[0].x, vertices[1].x - vertices[0].x, vertices[0].x - p.x);
+    let b = Vec3::new(vertices[2].y - vertices[0].y, vertices[1].y - vertices[0].y, vertices[0].y - p.y);
+    let u = a.cross(b);
 
     // Check for degenerate triangle (ie, cross product result is zero);
     // if yes, return vec with a negative value
     if u.z.abs() < 1.0 {
-        return Vec3Df { x: -1.0, y: 1.0, z: 1.0 };
+        return Vec3::new(-1.0, 1.0, 1.0);
     }
 
-    Vec3Df {
-        x: 1.0 - (u.x + u.y) / u.z,
-        y: u.y / u.z,
-        z: u.x / u.z,
-    }
+    Vec3::new(
+        1.0 - (u.x + u.y) / u.z,
+        u.y / u.z,
+        u.x / u.z,
+    )
 }
 
 
 // Convert barycentric coords into a 3D point
-fn bary_to_point(bc_vertex: &Vec3Df, vertices: &[Vec2Di; 3]) -> Vec2Di {
-    Vec2Di {
-        x: (bc_vertex.x*vertices[0].x as f32 + bc_vertex.y*vertices[1].x as f32 + bc_vertex.z*vertices[2].x as f32) as i32,
-        y: (bc_vertex.x*vertices[0].y as f32 + bc_vertex.y*vertices[1].y as f32 + bc_vertex.z*vertices[2].y as f32) as i32,
+fn bary_to_point(bc_vertex: &Vec3, vertices: &[Vec2; 3]) -> Vec2 {
+    Vec2 {
+        x: (bc_vertex.x*vertices[0].x + bc_vertex.y*vertices[1].x + bc_vertex.z*vertices[2].x) as i32,
+        y: (bc_vertex.x*vertices[0].y + bc_vertex.y*vertices[1].y + bc_vertex.z*vertices[2].y) as i32,
     }
 }
 
@@ -48,7 +48,7 @@ where T: ColorSpace + Copy + std::fmt::Debug {
 
     // transformation; perspective of camera from z=5 (i think)
     face.vertices = face.vertices.map(|v| {
-        Vec3Df {
+        Vec3::new()
             x: v.x / (1.0 - (v.y/c)),
             y: v.y / (1.0 - (v.y/c)),
             z: v.z / (1.0 - (v.y/c))
@@ -57,25 +57,25 @@ where T: ColorSpace + Copy + std::fmt::Debug {
 
     // scale [0,1] coords into image size
     let face_2d = face.vertices.map(|v| {
-        Vec2Di {
-            x: ((1.0 + v.x)*image.width as f32 / 2.0) as i32,
-            y: ((1.0 + v.y)* image.height as f32 / 2.0) as i32
+        Vec2 {
+            x: ((1.0 + v.x)*image.width / 2.0) as i32,
+            y: ((1.0 + v.y)* image.height / 2.0) as i32
         }
     });
 
     // scale texture image too (idk why but this one doesn't use transform + scaling like above)
     // also requires VFLIPPING ? wat dafuq
     let texture_face_2d = texture_face.vertices.map(|v|{
-        Vec2Di {
-            x: (v.x*texture_image.width as f32) as i32,
-            y: (texture_image.height as f32 - v.y* texture_image.height as f32) as i32
+        Vec2 {
+            x: (v.x*texture_image.width) as i32,
+            y: (texture_image.height - v.y* texture_image.height) as i32
         }
     });
 
     // shrink bounding box to rasterize over
-    let mut bboxmin = Vec2Di { x: image.width as i32 - 1, y: image.height as i32 - 1 };
-    let mut bboxmax = Vec2Di { x: 0, y: 0 };
-    let clamp = Vec2Di { x: image.width as i32 - 1, y: image.height as i32 - 1 };
+    let mut bboxmin = Vec2 { x: image.width as i32 - 1, y: image.height as i32 - 1 };
+    let mut bboxmax = Vec2 { x: 0, y: 0 };
+    let clamp = Vec2 { x: image.width as i32 - 1, y: image.height as i32 - 1 };
 
     for vertex in &face_2d {
         bboxmin.x = max(0, min(bboxmin.x, vertex.x));
@@ -88,7 +88,7 @@ where T: ColorSpace + Copy + std::fmt::Debug {
     // loop over bounding box pixels for valid baryometric + depth buffer check
     for p_x in bboxmin.x .. bboxmax.x {
         for p_y in bboxmin.y .. bboxmax.y {
-            let bc_screen = barycentric(&face_2d, &Vec2Di {x: p_x, y: p_y});
+            let bc_screen = barycentric(&face_2d, &Vec2 {x: p_x, y: p_y});
             if bc_screen.x < 0.0 || bc_screen.y < 0.0 || bc_screen.z < 0.0 {
                 continue;
             }

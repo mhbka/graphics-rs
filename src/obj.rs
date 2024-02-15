@@ -1,5 +1,6 @@
 use std::fs;
-use nalgebra_glm::*;
+
+use glam::*;
 
 use crate::tgaimage::*;
 use crate::triangle_bary::*;
@@ -30,27 +31,24 @@ pub fn draw_obj(obj_filepath: &str, image: &mut Image<RGB>) {
         let (mut face, texture_face) = (tup.0, tup.1);
 
         // calculate vector of 2 sides of the face
-        let side_1 = glm::Vec3::new() {
-            x: face.vertices[1].x - face.vertices[0].x,
-            y: face.vertices[1].y - face.vertices[0].y,
-            z: face.vertices[1].z - face.vertices[0].z,
-        };
+        let side_1 = Vec3::new(
+            face.vertices[1].x - face.vertices[0].x,
+            face.vertices[1].y - face.vertices[0].y,
+            face.vertices[1].z - face.vertices[0].z,
+        );
 
-        let side_2 = Vec3Df {
-            x: face.vertices[2].x - face.vertices[0].x,
-            y: face.vertices[2].y - face.vertices[0].y,
-            z: face.vertices[2].z - face.vertices[0].z,
-        };
+        let side_2 = Vec3::new(
+            face.vertices[2].x - face.vertices[0].x,
+            face.vertices[2].y - face.vertices[0].y,
+            face.vertices[2].z - face.vertices[0].z,
+        );
 
         // calculate normal of the face using the 2 sides, and normalize
-        let mut normal = side_1.cross_product(&side_2);
-        normal.normalize();
-
-        let rrr = glm::vec3();
+        let mut normal = side_1.cross(side_2).normalize();
             
         // calculate weight of light (scalar product of normal + z-coordinate)
-        let light = Vec3Df {x:0.0, y:0.0, z:1.0};
-        let intensity = normal.scalar_product(&light);
+        let light = Vec3::new(0.0, 0.0, 1.1);
+        let intensity = normal.dot(light);
         if intensity > 0.0 {
             triangle(image, &mut texture_img, &mut face, texture_face, &mut zbuffer, intensity);
         }
