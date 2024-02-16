@@ -4,7 +4,7 @@ use glam::*;
 
 use crate::tgaimage::*;
 use crate::triangle_bary::*;
-use crate::types::*;
+// use crate::types::*;
 use nom::{
     bytes::complete::tag,
     character::complete::{char, multispace0, space1, digit1},
@@ -32,15 +32,15 @@ pub fn draw_obj(obj_filepath: &str, image: &mut Image<RGB>) {
 
         // calculate vector of 2 sides of the face
         let side_1 = Vec3::new(
-            face.vertices[1].x - face.vertices[0].x,
-            face.vertices[1].y - face.vertices[0].y,
-            face.vertices[1].z - face.vertices[0].z,
+            face[1].x - face[0].x,
+            face[1].y - face[0].y,
+            face[1].z - face[0].z,
         );
 
         let side_2 = Vec3::new(
-            face.vertices[2].x - face.vertices[0].x,
-            face.vertices[2].y - face.vertices[0].y,
-            face.vertices[2].z - face.vertices[0].z,
+            face[2].x - face[0].x,
+            face[2].y - face[0].y,
+            face[2].z - face[0].z,
         );
 
         // calculate normal of the face using the 2 sides, and normalize
@@ -57,7 +57,7 @@ pub fn draw_obj(obj_filepath: &str, image: &mut Image<RGB>) {
 
 
 // parse the object from file
-// returns a (Face, Face) tuple; the 1st face contains actual vertices, and the 2nd contains texture coordinates (ie, with 0 z-value).
+// returns a (Face, Face) tuple; the 1st face contains actual, and the 2nd contains texture coordinates (ie, with 0 z-value).
 pub fn parse_obj(filepath: &str) -> Vec<(Face, Face)> { 
     let contents = fs::read_to_string(filepath)
         .expect(&format!("No such file at this filepath: {filepath}")[..]);
@@ -69,7 +69,7 @@ pub fn parse_obj(filepath: &str) -> Vec<(Face, Face)> {
     for line in contents.lines() {
         if line.starts_with("v ") {
             match parse_vertex(&line) {
-                Ok((_, vec)) => vertices.push(vec),
+                Ok((_, vec)) =>.push(vec),
                 Err(_) => continue
             }
         }
@@ -86,7 +86,7 @@ pub fn parse_obj(filepath: &str) -> Vec<(Face, Face)> {
         }
 
         else if line.starts_with("f ") {
-            match parse_face(&line, &vertices, &texture_coords) {
+            match parse_face(&line, , &texture_coords) {
                 Ok((_, (face, texture_face))) => faces_and_textures.push((face, texture_face)),
                 Err(_) => continue,
             }
@@ -97,17 +97,17 @@ pub fn parse_obj(filepath: &str) -> Vec<(Face, Face)> {
 
 
 // vertex parsing
-fn parse_vertex(input: &str) -> IResult<&str, Vec3Df> {
+fn parse_vertex(input: &str) -> IResult<&str, Vec3> {
     let (input, _) = char('v')(input)?;
     let (input, _) = multispace0(input)?;
     let (input, (x, _, y, _, z)) = tuple((float, space1, float, space1, float))(input)?;
-    Ok((input, Vec3Df { x, y, z }))
+    Ok((input, Vec3 { x, y, z }))
 }
 
 
 // face parsing
 // in each of the 3 triplets, parses 1st value (actual vertice) and 2nd value (texture vertice)
-fn parse_face<'a>(input: &'a str, vertices: &Vec<Vec3Df>, texture_coords: &Vec<Vec3Df>) -> IResult<&'a str, (Face, Face)> {
+fn parse_face<'a>(input: &'a str, vertices: &Vec<Vec3>, texture_coords: &Vec<Vec3>) -> IResult<&'a str, ([Vec3; 3], [Vec3; 3])> {
     let (input, _) = char('f')(input)?;
     let (input, _) = multispace0(input)?;
 
@@ -117,25 +117,25 @@ fn parse_face<'a>(input: &'a str, vertices: &Vec<Vec3Df>, texture_coords: &Vec<V
     let (input, _) = multispace0(input)?;
     let (input, v3_vec) = separated_list0(tag("/"), map_res(digit1, str::parse::<usize>))(input)?;
     
-    let face = Face {vertices: [vertices[v1_vec[0]-1], vertices[v2_vec[0]-1], vertices[v3_vec[0]-1]]};
-    let face_textures = Face {vertices: [texture_coords[v1_vec[1]-1], texture_coords[v2_vec[1]-1], texture_coords[v3_vec[1]-1]]};
+    let face = [[v1_vec[0]-1], [v2_vec[0]-1], [v3_vec[0]-1]];
+    let face_textures = [texture_coords[v1_vec[1]-1], texture_coords[v2_vec[1]-1], texture_coords[v3_vec[1]-1]];
 
     Ok((input, (face, face_textures)))
 }
 
 
 // texture parsing
-fn parse_texture(input: &str) -> IResult<&str, Vec3Df> {
+fn parse_texture(input: &str) -> IResult<&str, Vec3> {
     let (input, _) = tag("vt")(input)?;
     let (input, _) = multispace0(input)?;
     let (input, (x, _, y, _, z)) = tuple((float, space1, float, space1, float))(input)?;
 
-    // Note: z seems to always be 0, but we need to store f32 so we use Vec3Df anyway
-    Ok((input, Vec3Df { x, y, z }))
+    // Note: z seems to always be 0, but we need to store f32 so we use Vec3 anyway
+    Ok((input, Vec3 { x, y, z }))
 }   
 
 // texture face parsing
-fn parse_texture_face<'a> (input: &'a str, texture_vertices: &Vec3Df) -> IResult<&'a str, [usize; 3]> {
+fn parse_texture_face<'a> (input: &'a str, texture: &Vec3) -> IResult<&'a str, [usize; 3]> {
     let (input, _) = tag("f")(input)?;
     let (input, _) = multispace0(input)?;
     

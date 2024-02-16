@@ -26,10 +26,10 @@ fn barycentric(vertices: &[Vec2; 3], p: &Vec2) -> Vec3 {
 
 // Convert barycentric coords into a 3D point
 fn bary_to_point(bc_vertex: &Vec3, vertices: &[Vec2; 3]) -> Vec2 {
-    Vec2 {
-        x: (bc_vertex.x*vertices[0].x + bc_vertex.y*vertices[1].x + bc_vertex.z*vertices[2].x) as i32,
-        y: (bc_vertex.x*vertices[0].y + bc_vertex.y*vertices[1].y + bc_vertex.z*vertices[2].y) as i32,
-    }
+    Vec2::new(
+        bc_vertex.x*vertices[0].x + bc_vertex.y*vertices[1].x + bc_vertex.z*vertices[2].x,
+        bc_vertex.x*vertices[0].y + bc_vertex.y*vertices[1].y + bc_vertex.z*vertices[2].y
+    )
 }
 
 
@@ -37,8 +37,8 @@ fn bary_to_point(bc_vertex: &Vec3, vertices: &[Vec2; 3]) -> Vec2 {
 pub fn triangle<T>(
     image: &mut Image<T>, 
     texture_image: &mut Image<T>, 
-    face: &mut Face, 
-    texture_face: Face, 
+    face: &mut [Vec3; 3], 
+    texture_face: [Vec3; 3], 
     zbuffer: &mut Vec<f32>, 
     intensity: f32
 ) 
@@ -47,65 +47,67 @@ where T: ColorSpace + Copy + std::fmt::Debug {
     let c = -1.5; // distance from camera
 
     // transformation; perspective of camera from z=5 (i think)
-    face.vertices = face.vertices.map(|v| {
-        Vec3::new()
-            x: v.x / (1.0 - (v.y/c)),
-            y: v.y / (1.0 - (v.y/c)),
-            z: v.z / (1.0 - (v.y/c))
-        }
+    let face = face.map(|v| {
+        Vec3::new(
+            v.x / (1.0 - (v.y/c)),
+            v.y / (1.0 - (v.y/c)),
+            v.z / (1.0 - (v.y/c))
+        )
     }); 
 
     // scale [0,1] coords into image size
-    let face_2d = face.vertices.map(|v| {
-        Vec2 {
-            x: ((1.0 + v.x)*image.width / 2.0) as i32,
-            y: ((1.0 + v.y)* image.height / 2.0) as i32
-        }
+    let face_2d = face.map(|v| {
+        Vec2::new(
+            (1.0 + v.x)*image.width as f32 / 2.0, 
+            (1.0 + v.y)* image.height as f32 / 2.0
+        )
     });
 
     // scale texture image too (idk why but this one doesn't use transform + scaling like above)
     // also requires VFLIPPING ? wat dafuq
-    let texture_face_2d = texture_face.vertices.map(|v|{
-        Vec2 {
-            x: (v.x*texture_image.width) as i32,
-            y: (texture_image.height - v.y* texture_image.height) as i32
-        }
+    let texture_face_2d = texture_face.map(|v|{
+        Vec2::new(
+            v.x * texture_image.width as f32,
+            texture_image.height as f32 - v.y * texture_image.height as f32
+        )   
     });
 
     // shrink bounding box to rasterize over
-    let mut bboxmin = Vec2 { x: image.width as i32 - 1, y: image.height as i32 - 1 };
-    let mut bboxmax = Vec2 { x: 0, y: 0 };
-    let clamp = Vec2 { x: image.width as i32 - 1, y: image.height as i32 - 1 };
-
+    let mut bboxmin = Vec2::new(image.width as f32 - 1.0, image.height as f32 - 1.0);
+    let mut bboxmax = Vec2::new(0.0, 0.0);
+    let clamp = Vec2::new(image.width as f32 - 1.0, image.height as f32 - 1.0);
     for vertex in &face_2d {
-        bboxmin.x = max(0, min(bboxmin.x, vertex.x));
-        bboxmin.y = max(0, min(bboxmin.y, vertex.y));
-
-        bboxmax.x = min(clamp.x, max(bboxmax.x, vertex.x));
-        bboxmax.y = min(clamp.y, max(bboxmax.y, vertex.y));
-    }
+        bboxmin.x = f32::max(0.0, f32::min(bboxmin.x, vertex.x)) as f32;
+        bboxmin.y = f32::max(0.0, f32::min(bboxmin.y, vertex.y)) as f32;
+    
+        bboxmax.x = f32::min(clamp.x, f32::max(bboxmax.x, vertex.x)) as f32;
+        bboxmax.y = f32::min(clamp.y, f32::max(bboxmax.y, vertex.y)) as f32;
+    } 
 
     // loop over bounding box pixels for valid baryometric + depth buffer check
-    for p_x in bboxmin.x .. bboxmax.x {
-        for p_y in bboxmin.y .. bboxmax.y {
-            let bc_screen = barycentric(&face_2d, &Vec2 {x: p_x, y: p_y});
+    for p_x in bboxmin.x as i32 .. bboxmax.x as i32 +1 {
+        for p_y in bboxmin.y as i32 .. bboxmax.y as i32 +1 {
+            let bc_screen = barycentric(&face_2d, &Vec2::new(p_x as f32, p_y as f32));
             if bc_screen.x < 0.0 || bc_screen.y < 0.0 || bc_screen.z < 0.0 {
                 continue;
             }
 
             // depth buffer check for z-value
-            let p_z = face.vertices[0].z * bc_screen.x
-                        + face.vertices[1].z * bc_screen.y
-                        + face.vertices[2].z * bc_screen.z;
+            let p_z = face[0].z * bc_screen.x
+                        + face[1].z * bc_screen.y
+                        + face[2].z * bc_screen.z;
 
             if p_z > zbuffer[(p_x + p_y*image.width as i32) as usize] {
 
                 // use barycentric coordinates to locate corresponding pixel within texture_face in texture_img
-                let texture_pixel_coord = bary_to_point(&bc_screen, &texture_face_2d);
-                let mut texture_color = texture_image.data[(texture_pixel_coord.x + texture_pixel_coord.y*texture_image.height as i32) as usize];
+                let texture_pixel_index = {
+                    let coord = bary_to_point(&bc_screen, &texture_face_2d);
+                    (coord.x + coord.y*texture_image.height as f32) as usize
+                };
+                let mut texture_color = texture_image.data[texture_pixel_index];
                 texture_color.shade(intensity);
 
-                // set actual pixel with texture pixel's color
+                // update zbuffer, then set actual pixel with texture pixel's color
                 zbuffer[(p_x + p_y*image.width as i32) as usize] = p_z;
                 image.set(p_x as usize, p_y as usize, texture_color).unwrap();
             }
