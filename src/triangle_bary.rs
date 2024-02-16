@@ -29,15 +29,20 @@ fn bary_to_point(bc_coords: &Vec3, vertices: &[Vec2; 3]) -> Vec2 {
     ).floor()
 }
 
+// Convert barycentric coords into a single scalar
+fn bary_to_scalar(bc_coords: &Vec3, weights: &[f32; 3]) -> f32 {
+    bc_coords.x*weights[0] + bc_coords.y*weights[1] + bc_coords.z*weights[2]
+}
+
 
 // Triangle rasterization function with depth buffer + texture + perspective etc
 pub fn triangle<T>(
     image: &mut Image<T>, 
     texture_image: &mut Image<T>, 
-    face: &mut [Vec3; 3], 
+    face: [Vec3; 3], 
     texture_face: [Vec3; 3], 
+    normals: [Vec3; 3],
     zbuffer: &mut Vec<f32>, 
-    intensity: f32
 ) 
 where T: ColorSpace + Copy + std::fmt::Debug {
 
@@ -53,6 +58,13 @@ where T: ColorSpace + Copy + std::fmt::Debug {
         )
     }); 
     */
+
+    // compute intensities (dot product of each vertex with corresponding normal)
+    let intensities = [
+        face[0].dot(normals[0]),
+        face[1].dot(normals[1]),
+        face[2].dot(normals[2]),
+    ];
 
     // scale [0,1] coords into image size
     let face_2d = face.map(|v| {
@@ -107,6 +119,9 @@ where T: ColorSpace + Copy + std::fmt::Debug {
                     (coord.x + coord.y*texture_image.height as f32) as usize
                 };
                 let mut texture_color = texture_image.data[texture_pixel_index];
+
+                // use them for interpolating intensity, then shade the color that we have
+                let intensity = bary_to_scalar(&bc_screen, &intensities);
                 texture_color.shade(intensity);
 
                 // update zbuffer, then set actual pixel with texture pixel's color
