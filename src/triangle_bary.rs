@@ -1,7 +1,5 @@
-// use crate::types::*;
 use crate::tgaimage::*;
 use glam::*;
-use std::cmp::{min, max};
 
 
 // Calculate barycentric weights, given 3 vertices and a point

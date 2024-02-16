@@ -1,19 +1,19 @@
 use crate::tgaimage::*;
 use std::mem::swap;
-use crate::types::Vec2Di;
+use glam::*;
 
-pub fn line<T>(image: &mut Image<T>, mut start: Vec2Di, mut end: Vec2Di, color: T) -> Result<(), String>
+pub fn line<T>(image: &mut Image<T>, mut start: Vec2, mut end: Vec2, color: T) -> Result<(), String>
 where T: ColorSpace + Copy {
     let mut steep = false;
 
-    // if steep line, transpose Vec2Diinates
+    // if steep line, transpose Vec2inates
     if (start.x - end.x).abs() < (start.y - end.y).abs() {
         swap(&mut start.x, &mut start.y);
         swap(&mut end.x, &mut end.y);
         steep = true;
     }
 
-    // if start's x is greater than end's x, swap the Vec2Diinates
+    // if start's x is greater than end's x, swap the Vec2inates
     if start.x > end.x {
         swap(&mut start.x, &mut end.x);
         swap(&mut start.y, &mut end.y);
@@ -28,13 +28,13 @@ where T: ColorSpace + Copy {
     let mut y = start.y;
 
     // iterate
-    for x in start.x .. end.x {
+    for x in start.x as i32 .. end.x as i32 + 1 {
         if steep { image.set(y as usize, x as usize, color)?; }
         else { image.set(x as usize, y as usize, color)?; }
 
         error += derror;
         if error > 0.5 {
-            y += if end.y>start.y {1} else {-1};
+            y += if end.y > start.y {1.0} else {-1.0};
             error -= 1.0;
         }       
     }

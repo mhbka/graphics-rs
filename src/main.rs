@@ -1,17 +1,13 @@
 mod tgaimage;
 mod line;
 mod obj;
-mod types;
 mod colors;
 mod triangle_bary;
 
 use tgaimage::*;
-use line::*;
 use std::time;
-use types::*;
 use crate::obj::draw_obj;
 
-use tinytga::{RawTga};
 
 
 
