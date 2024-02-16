@@ -4,9 +4,11 @@ use glam::*;
 
 // Calculate barycentric weights, given 3 vertices and a point
 fn barycentric(vertices: &[Vec2; 3], p: &Vec2) -> Vec3 {
-    let a = Vec3::new(vertices[2].x - vertices[0].x, vertices[1].x - vertices[0].x, vertices[0].x - p.x);
-    let b = Vec3::new(vertices[2].y - vertices[0].y, vertices[1].y - vertices[0].y, vertices[0].y - p.y);
-    let u = a.cross(b);
+    let u = {
+        let a = Vec3::new(vertices[2].x - vertices[0].x, vertices[1].x - vertices[0].x, vertices[0].x - p.x);
+        let b = Vec3::new(vertices[2].y - vertices[0].y, vertices[1].y - vertices[0].y, vertices[0].y - p.y);
+        a.cross(b)
+    };
 
     // Check for degenerate triangle (ie, cross product result is zero);
     // if yes, return vec with a negative value
@@ -42,6 +44,7 @@ pub fn triangle<T>(
 ) 
 where T: ColorSpace + Copy + std::fmt::Debug {
 
+    /* 
     let c = -1.5; // distance from camera
 
     // transformation; perspective of camera from z=5 (i think)
@@ -52,6 +55,7 @@ where T: ColorSpace + Copy + std::fmt::Debug {
             v.z / (1.0 - (v.y/c))
         )
     }); 
+    */
 
     // scale [0,1] coords into image size
     let face_2d = face.map(|v| {

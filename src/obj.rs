@@ -45,7 +45,7 @@ pub fn draw_obj(obj_filepath: &str, image: &mut Image<RGB>) {
         let normal = side_1.cross(side_2).normalize();
             
         // calculate weight of light (scalar product of normal + z-coordinate)
-        let light = Vec3::new(0.0, 0.0, 1.1);
+        let light = Vec3::new(0.0, 0.0, 1.0);
         let intensity = normal.dot(light);
         if intensity > 0.0 {
             triangle(image, &mut texture_img, &mut face, texture_face, &mut zbuffer, intensity);
