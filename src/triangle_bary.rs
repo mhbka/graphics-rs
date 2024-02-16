@@ -1,14 +1,11 @@
 use crate::tgaimage::*;
 use glam::*;
 
-
 // Calculate barycentric weights, given 3 vertices and a point
 fn barycentric(vertices: &[Vec2; 3], p: &Vec2) -> Vec3 {
-    let u = {
-        let a = Vec3::new(vertices[2].x - vertices[0].x, vertices[1].x - vertices[0].x, vertices[0].x - p.x);
-        let b = Vec3::new(vertices[2].y - vertices[0].y, vertices[1].y - vertices[0].y, vertices[0].y - p.y);
-        a.cross(b)
-    };
+    let a = Vec3::new(vertices[2].x - vertices[0].x, vertices[1].x - vertices[0].x, vertices[0].x - p.x);
+    let b = Vec3::new(vertices[2].y - vertices[0].y, vertices[1].y - vertices[0].y, vertices[0].y - p.y);
+    let u = a.cross(b);    
 
     // Check for degenerate triangle (ie, cross product result is zero);
     // if yes, return vec with a negative value
@@ -24,12 +21,12 @@ fn barycentric(vertices: &[Vec2; 3], p: &Vec2) -> Vec3 {
 }
 
 
-// Convert barycentric coords into a 3D point
-fn bary_to_point(bc_vertex: &Vec3, vertices: &[Vec2; 3]) -> Vec2 {
+// Convert barycentric coords into a 2D point
+fn bary_to_point(bc_coords: &Vec3, vertices: &[Vec2; 3]) -> Vec2 {
     Vec2::new(
-        bc_vertex.x*vertices[0].x + bc_vertex.y*vertices[1].x + bc_vertex.z*vertices[2].x,
-        bc_vertex.x*vertices[0].y + bc_vertex.y*vertices[1].y + bc_vertex.z*vertices[2].y
-    )
+        bc_coords.x*vertices[0].x + bc_coords.y*vertices[1].x + bc_coords.z*vertices[2].x,
+        bc_coords.x*vertices[0].y + bc_coords.y*vertices[1].y + bc_coords.z*vertices[2].y
+    ).floor()
 }
 
 
@@ -63,6 +60,7 @@ where T: ColorSpace + Copy + std::fmt::Debug {
             (1.0 + v.x)*image.width as f32 / 2.0, 
             (1.0 + v.y)* image.height as f32 / 2.0
         )
+        .floor()
     });
 
     // scale texture image too (idk why but this one doesn't use transform + scaling like above)
@@ -71,13 +69,15 @@ where T: ColorSpace + Copy + std::fmt::Debug {
         Vec2::new(
             v.x * texture_image.width as f32,
             texture_image.height as f32 - v.y * texture_image.height as f32
-        )   
+        )
+        .floor()   
     });
 
     // shrink bounding box to rasterize over
     let mut bboxmin = Vec2::new(image.width as f32 - 1.0, image.height as f32 - 1.0);
     let mut bboxmax = Vec2::new(0.0, 0.0);
     let clamp = Vec2::new(image.width as f32 - 1.0, image.height as f32 - 1.0);
+    
     for vertex in &face_2d {
         bboxmin.x = f32::max(0.0, f32::min(bboxmin.x, vertex.x)) as f32;
         bboxmin.y = f32::max(0.0, f32::min(bboxmin.y, vertex.y)) as f32;
@@ -87,12 +87,12 @@ where T: ColorSpace + Copy + std::fmt::Debug {
     } 
 
     // loop over bounding box pixels for valid baryometric + depth buffer check
-    for p_x in bboxmin.x as i32 .. bboxmax.x as i32 +1 {
-        for p_y in bboxmin.y as i32 .. bboxmax.y as i32 +1 {
+    for p_x in bboxmin.x as i32 .. bboxmax.x as i32 {
+        for p_y in bboxmin.y as i32 .. bboxmax.y as i32 {
             let bc_screen = barycentric(&face_2d, &Vec2::new(p_x as f32, p_y as f32));
             if bc_screen.x < 0.0 || bc_screen.y < 0.0 || bc_screen.z < 0.0 {
                 continue;
-            }
+                }
 
             // depth buffer check for z-value
             let p_z = face[0].z * bc_screen.x

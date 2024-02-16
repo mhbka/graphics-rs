@@ -1,4 +1,5 @@
 use std::fs;
+use std::io::Write;
 use glam::*;
 
 use crate::tgaimage::*;
@@ -49,7 +50,7 @@ pub fn draw_obj(obj_filepath: &str, image: &mut Image<RGB>) {
         let intensity = normal.dot(light);
         if intensity > 0.0 {
             triangle(image, &mut texture_img, &mut face, texture_face, &mut zbuffer, intensity);
-        }
+        }   
     }
 }
 
@@ -127,6 +128,6 @@ fn parse_texture(input: &str) -> IResult<&str, Vec3> {
     let (input, _) = tag("vt")(input)?;
     let (input, _) = multispace0(input)?;
     let (input, (x, _, y, _, z)) = tuple((float, space1, float, space1, float))(input)?;
-
+    
     Ok((input, Vec3 { x, y, z })) // Note: z seems to always be 0, but we'll store it anyway just in case
 }   
