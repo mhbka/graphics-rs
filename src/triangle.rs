@@ -2,7 +2,6 @@ use crate::tgaimage::*;
 use glam::*;
 
 
-
 // Triangle rasterization function with depth buffer + texture + perspective etc
 pub fn triangle<T>(
     image: &mut Image<T>, 
@@ -13,20 +12,7 @@ pub fn triangle<T>(
     zbuffer: &mut Vec<f32>, 
 ) 
 where T: ColorSpace + Copy + std::fmt::Debug {
-
-    /* 
-    let c = -1.5; // distance from camera
-
-    // transformation; perspective of camera from z=5 (i think)
-    let face = face.map(|v| {
-        Vec3::new(
-            v.x / (1.0 - (v.y/c)),
-            v.y / (1.0 - (v.y/c)),
-            v.z / (1.0 - (v.y/c))
-        )
-    }); 
-    */
-
+    
     // compute intensities (dot product of each vertex with corresponding normal)
     let intensities = [
         face[0].dot(normals[0]),
@@ -101,9 +87,38 @@ where T: ColorSpace + Copy + std::fmt::Debug {
 }
 
 
-// Calculate matrix to "move" camera
-fn lookat(eye: &Vec3, centre: &Vec3, up: &Vec3) -> {
+// Return matrix for transforming [0, 1] coordinates into screen cube coordinates
+fn viewport(x: i32, y: i32, w: i32, h: i32) -> Mat4 {
+    let mut m = Mat4::IDENTITY;
+    let depth = 255; // idk the guy said so
 
+    m.x_axis[3] = (x+w) as f32/2.0;
+    m.y_axis[3] = (y+h) as f32/2.0;
+    m.z_axis[3] = depth as f32/2.0;
+
+    m.x_axis[0] = w as f32 / 2.0;
+    m.y_axis[1] = h as f32 / 2.0;
+    m.z_axis[2] = depth as f32 / 2.0;
+
+    m
+}
+
+
+// Calculate matrix to "move" camera
+fn lookat(eye: Vec3, centre: Vec3, up: Vec3) -> Affine3A {
+    let z = (eye - centre).normalize();
+    let x = up.cross(z.clone()).normalize();
+    let y = z.cross(x.clone()).normalize();
+    let mut model_view = Affine3A::IDENTITY;
+
+    for i in 0..3 {
+        model_view.x_axis[i] = x[i];
+        model_view.y_axis[i] = y[i];
+        model_view.z_axis[i] = z[i];
+        model_view.translation[i] = -eye[i];
+    };
+
+    model_view
 }
 
 // Calculate barycentric weights, given 3 vertices and a point

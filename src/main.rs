@@ -2,7 +2,7 @@ mod tgaimage;
 mod line;
 mod obj;
 mod colors;
-mod triangle_bary;
+mod triangle;
 
 use tgaimage::*;
 use std::time;
