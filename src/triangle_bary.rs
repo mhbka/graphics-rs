@@ -1,38 +1,6 @@
 use crate::tgaimage::*;
 use glam::*;
 
-// Calculate barycentric weights, given 3 vertices and a point
-fn barycentric(vertices: &[Vec2; 3], p: &Vec2) -> Vec3 {
-    let a = Vec3::new(vertices[2].x - vertices[0].x, vertices[1].x - vertices[0].x, vertices[0].x - p.x);
-    let b = Vec3::new(vertices[2].y - vertices[0].y, vertices[1].y - vertices[0].y, vertices[0].y - p.y);
-    let u = a.cross(b);    
-
-    // Check for degenerate triangle (ie, cross product result is zero);
-    // if yes, return vec with a negative value
-    if u.z.abs() < 1.0 {
-        return Vec3::new(-1.0, 1.0, 1.0);
-    }
-
-    Vec3::new(
-        1.0 - (u.x + u.y) / u.z,
-        u.y / u.z,
-        u.x / u.z,
-    )
-}
-
-
-// Convert barycentric coords into a 2D point
-fn bary_to_point(bc_coords: &Vec3, vertices: &[Vec2; 3]) -> Vec2 {
-    Vec2::new(
-        bc_coords.x*vertices[0].x + bc_coords.y*vertices[1].x + bc_coords.z*vertices[2].x,
-        bc_coords.x*vertices[0].y + bc_coords.y*vertices[1].y + bc_coords.z*vertices[2].y
-    ).floor()
-}
-
-// Convert barycentric coords into a single scalar
-fn bary_to_scalar(bc_coords: &Vec3, weights: &[f32; 3]) -> f32 {
-    bc_coords.x*weights[0] + bc_coords.y*weights[1] + bc_coords.z*weights[2]
-}
 
 
 // Triangle rasterization function with depth buffer + texture + perspective etc
@@ -130,4 +98,42 @@ where T: ColorSpace + Copy + std::fmt::Debug {
             }
         }
     }
+}
+
+
+// Calculate matrix to "move" camera
+fn lookat(eye: &Vec3, centre: &Vec3, up: &Vec3) -> {
+
+}
+
+// Calculate barycentric weights, given 3 vertices and a point
+fn barycentric(vertices: &[Vec2; 3], p: &Vec2) -> Vec3 {
+    let a = Vec3::new(vertices[2].x - vertices[0].x, vertices[1].x - vertices[0].x, vertices[0].x - p.x);
+    let b = Vec3::new(vertices[2].y - vertices[0].y, vertices[1].y - vertices[0].y, vertices[0].y - p.y);
+    let u = a.cross(b);    
+
+    // Check for degenerate triangle (ie, cross product result is zero);
+    // if yes, return vec with a negative value
+    if u.z.abs() < 1.0 {
+        return Vec3::new(-1.0, 1.0, 1.0);
+    }
+
+    Vec3::new(
+        1.0 - (u.x + u.y) / u.z,
+        u.y / u.z,
+        u.x / u.z,
+    )
+}
+
+// Convert barycentric coords into a 2D point
+fn bary_to_point(bc_coords: &Vec3, vertices: &[Vec2; 3]) -> Vec2 {
+    Vec2::new(
+        bc_coords.x*vertices[0].x + bc_coords.y*vertices[1].x + bc_coords.z*vertices[2].x,
+        bc_coords.x*vertices[0].y + bc_coords.y*vertices[1].y + bc_coords.z*vertices[2].y
+    ).floor()
+}
+
+// Convert barycentric coords into a single scalar
+fn bary_to_scalar(bc_coords: &Vec3, weights: &[f32; 3]) -> f32 {
+    bc_coords.x*weights[0] + bc_coords.y*weights[1] + bc_coords.z*weights[2]
 }

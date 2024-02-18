@@ -24,10 +24,8 @@ pub fn draw_obj(obj_filepath: &str, image: &mut Image<RGB>) {
     let mut texture_img = convert_from_tinytga();
     
     for tup in faces_textures_normals {
-        
-        let (mut face, texture_face, normal) = (tup.0, tup.1, tup.2);
+        let (face, texture_face, normal) = (tup.0, tup.1, tup.2);
         triangle(image, &mut texture_img, face, texture_face, normal, &mut zbuffer);
- 
     }
 }
 
