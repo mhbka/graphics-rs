@@ -12,22 +12,24 @@ pub fn triangle<T>(
     zbuffer: &mut Vec<f32>, 
 ) 
 where T: ColorSpace + Copy + std::fmt::Debug {
-    
+
+    // instantiate transform matrices
+    let eye = Vec3::new(1.0, 1.0, 3.0);
+    let centre = Vec3::new(0.0, 0.0, 0.0);
+    let up = Vec3::new(0.0, 1.0, 0.0);
+    let model_view = lookat(eye, centre, up);
+    let projection = Affine3A::IDENTITY;
+    let viewport = viewport(image.width/8, image.height/8, image.width*3/4, image.height*3/4);
+
+    // convert raw coords into screenspace
+    let face = convert_to_screen_coords(model_view, viewport, projection, face);
+
     // compute intensities (dot product of each vertex with corresponding normal)
     let intensities = [
         face[0].dot(normals[0]),
         face[1].dot(normals[1]),
         face[2].dot(normals[2]),
     ];
-
-    // scale [0,1] coords into image size
-    let face_2d = face.map(|v| {
-        Vec2::new(
-            (1.0 + v.x)*image.width as f32 / 2.0, 
-            (1.0 + v.y)* image.height as f32 / 2.0
-        )
-        .floor()
-    });
 
     // scale texture image too (idk why but this one doesn't use transform + scaling like above)
     // also requires VFLIPPING ? wat dafuq
@@ -44,7 +46,7 @@ where T: ColorSpace + Copy + std::fmt::Debug {
     let mut bboxmax = Vec2::new(0.0, 0.0);
     let clamp = Vec2::new(image.width as f32 - 1.0, image.height as f32 - 1.0);
     
-    for vertex in &face_2d {
+    for vertex in &face {
         bboxmin.x = f32::max(0.0, f32::min(bboxmin.x, vertex.x)) as f32;
         bboxmin.y = f32::max(0.0, f32::min(bboxmin.y, vertex.y)) as f32;
     
@@ -55,7 +57,7 @@ where T: ColorSpace + Copy + std::fmt::Debug {
     // loop over bounding box pixels for valid baryometric + depth buffer check
     for p_x in bboxmin.x as i32 .. bboxmax.x as i32 {
         for p_y in bboxmin.y as i32 .. bboxmax.y as i32 {
-            let bc_screen = barycentric(&face_2d, &Vec2::new(p_x as f32, p_y as f32));
+            let bc_screen = barycentric(&face, &Vec2::new(p_x as f32, p_y as f32));
             if bc_screen.x < 0.0 || bc_screen.y < 0.0 || bc_screen.z < 0.0 {
                 continue;
                 }
@@ -87,18 +89,30 @@ where T: ColorSpace + Copy + std::fmt::Debug {
 }
 
 
-// Return matrix for transforming [0, 1] coordinates into screen cube coordinates
-fn viewport(x: i32, y: i32, w: i32, h: i32) -> Mat4 {
-    let mut m = Mat4::IDENTITY;
-    let depth = 255; // idk the guy said so
+// Converts raw [0, 1] xyz coordinates into screen coordinates
+fn convert_to_screen_coords(model_view: Affine3A, viewport: Affine3A, projection: Affine3A, face: [Vec3; 3]) -> [Vec3; 3] {    
+    face.map(|v| {
+        viewport.transform_point3(
+            projection.transform_point3(
+                model_view.transform_point3(v)
+            )
+        )
+    }) 
+}
 
-    m.x_axis[3] = (x+w) as f32/2.0;
-    m.y_axis[3] = (y+h) as f32/2.0;
-    m.z_axis[3] = depth as f32/2.0;
+
+// Return matrix for transforming [0, 1] coordinates into screen cube coordinates
+fn viewport(x: usize, y: usize, w: usize, h: usize) -> Affine3A {
+    let mut m = Affine3A::IDENTITY;
+    let depth = 255; // idk the guy said so
 
     m.x_axis[0] = w as f32 / 2.0;
     m.y_axis[1] = h as f32 / 2.0;
     m.z_axis[2] = depth as f32 / 2.0;
+
+    m.translation[0] = (x+w) as f32/2.0;
+    m.translation[1] = (y+h) as f32/2.0;
+    m.translation[2] = depth as f32/2.0;
 
     m
 }
