@@ -13,7 +13,7 @@ pub fn triangle<T>(
 )   
 where T: ColorSpace + Copy + std::fmt::Debug {
     // instantiate transform matrices
-    let eye = Vec3::new(1.0, -1.0, 3.0);
+    let eye = Vec3::new(-1.0, -1.0, 3.0);
     let centre = Vec3::new(0.0, 0.0, 0.0);
     let up = Vec3::new(0.0, 1.0, 0.0);
     let model_view = lookat(eye, centre, up);

@@ -2,7 +2,7 @@ use std::fs;
 use glam::*;
 
 use crate::tgaimage::*;
-use crate::triangle::*;
+use crate::rasterizer::*;
 use nom::{
     bytes::complete::tag,
     character::complete::{char, multispace0, space1, digit1},
@@ -13,21 +13,6 @@ use nom::{
     IResult,
 };
 
-
-// main fn
-// draw the object into the image
-pub fn draw_obj(obj_filepath: &str, image: &mut Image<RGB>) {
-    let mut zbuffer = vec![f32::MIN; image.width * image.height];
-
-    let faces_textures_normals = parse_obj(obj_filepath);
-
-    let mut texture_img = convert_from_tinytga();
-    
-    for tup in faces_textures_normals {
-        let (face, texture_face, normals) = (tup.0, tup.1, tup.2);
-        triangle(image, &mut texture_img, face, texture_face, normals, &mut zbuffer);
-    }
-}
 
 
 // parse the object from file
