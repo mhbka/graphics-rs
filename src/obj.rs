@@ -1,8 +1,5 @@
 use std::fs;
 use glam::*;
-
-use crate::tgaimage::*;
-use crate::rasterizer::*;
 use nom::{
     bytes::complete::tag,
     character::complete::{char, multispace0, space1, digit1},

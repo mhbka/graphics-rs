@@ -1,4 +1,4 @@
-use std::{fs::File, io::{self, BufWriter, Write}};
+use std::{fs::File, io::{self, BufWriter, Write, Read}};
 
 use tinytga::RawTga;
 
@@ -218,9 +218,10 @@ impl <T: ColorSpace + Copy> Image<T>  {
 }       
 
 // converts tinytga image into our format   
-pub fn convert_from_tinytga() -> Image<RGB> {
-    let data = include_bytes!("../texture.tga");
-    let img = RawTga::from_slice(data).unwrap();
+pub fn convert_from_tinytga(image_path: &str) -> Image<RGB> {
+    let mut data = Vec::<u8>::new(); 
+    File::open(image_path).unwrap().read_to_end(&mut data).unwrap();
+    let img = RawTga::from_slice(&data[..]).unwrap();
     let (height, width) = (img.size().height, img.size().width);
     let raw_pixels: Vec<_> = img.pixels().collect();
     let mut new_pixels = vec![RGB::new(); (height*width) as usize];

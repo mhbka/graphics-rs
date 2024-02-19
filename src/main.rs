@@ -1,8 +1,8 @@
 mod tgaimage;
 mod line;
 mod obj;
-mod colors;
 mod rasterizer;
+mod shader;
 
 use tgaimage::*;
 use std::time;
@@ -18,7 +18,7 @@ fn main() {
 
     let mut zbuffer = vec![f32::MIN; image.width * image.height];
     let faces_textures_normals = parse_obj("african_head.obj");
-    let mut texture_img = convert_from_tinytga();
+    let mut texture_img = convert_from_tinytga("texture.tga");
 
     // timed block //
     let now = time::Instant::now();
