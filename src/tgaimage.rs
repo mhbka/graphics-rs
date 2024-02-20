@@ -5,6 +5,7 @@ use tinytga::RawTga;
 ///// Colorspaces
 pub trait ColorSpace {
     fn new() -> Self;
+    fn white() -> Self;
     fn shade(&mut self, intensity: f32);
     const BPP: u8;
 }
@@ -31,6 +32,9 @@ impl ColorSpace for Grayscale {
     fn new() -> Self {
         Grayscale {i: 0}
     }
+    fn white() -> Self {
+        Grayscale {i: 255}
+    }
     fn shade(&mut self, intensity: f32) {
         if intensity > 1.0 { return }
         self.i = ((self.i as f32) * intensity) as u8;
@@ -41,6 +45,9 @@ impl ColorSpace for Grayscale {
 impl ColorSpace for RGB {
     fn new() -> Self {
         RGB {r: 0, g: 0, b: 0}
+    }
+    fn white() -> Self {
+        RGB {r: 255, g: 255, b: 255}
     }
     fn shade(&mut self, intensity: f32) {
         if intensity > 1.0 { return }
@@ -55,6 +62,9 @@ impl ColorSpace for RGB {
 impl ColorSpace for RGBA {
     fn new() -> Self {
         RGBA {r: 0, g: 0, b: 0, a: 0}
+    }
+    fn white() -> Self {
+        RGBA {r: 255, g: 255, b: 255, a: 255}
     }
     fn shade(&mut self, intensity: f32) {
         if intensity > 1.0 { return }
@@ -99,6 +109,7 @@ pub unsafe fn any_as_u8_slice<T: Sized>(p: &T) -> &[u8] {
 
 /// Represents a TGA image.
 /// I'm too lazy to write a fn to read from file, use tinytga instead for that.
+#[derive(Clone)]
 pub struct Image <T: ColorSpace> {
     pub width: usize,
     pub height: usize,

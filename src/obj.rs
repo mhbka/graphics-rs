@@ -10,18 +10,24 @@ use nom::{
     IResult,
 };
 
-
+// each .obj face has 3 sets of 3 vertices; actual vertices, textures, and normals
+#[derive(Clone)]
+pub struct ObjFace {
+    pub vertices: [Vec3; 3],
+    pub texture_vertices: [Vec3; 3],
+    pub normals: [Vec3; 3]
+}
 
 // parse the object from file
 // returns tuple of 3 Vec3; the face vertices, texture vertices, and normal vectors
-pub fn parse_obj(filepath: &str) -> Vec<([Vec3; 3], [Vec3; 3], [Vec3; 3])> { 
+pub fn parse_obj(filepath: &str) -> Vec<(ObjFace)> { 
     let contents = fs::read_to_string(filepath)
         .expect(&format!("No such file at this filepath: {filepath}")[..]);
 
     let mut vertex_coords = Vec::new();
     let mut normal_coords = Vec::new();
     let mut texture_coords = Vec::new();
-    let mut faces_textures_normals = Vec::new();
+    let mut obj_faces = Vec::new();
 
     for line in contents.lines() {
         if line.starts_with("v ") {
@@ -47,12 +53,12 @@ pub fn parse_obj(filepath: &str) -> Vec<([Vec3; 3], [Vec3; 3], [Vec3; 3])> {
 
         else if line.starts_with("f ") {
             match parse_face(&line, &vertex_coords, &texture_coords, &normal_coords) {
-                Ok((_, (face, texture_face, normal))) => faces_textures_normals.push((face, texture_face, normal)),
+                Ok((_, obj_face)) => obj_faces.push(obj_face),
                 Err(_) => continue
             }
         }
     }
-    faces_textures_normals   
+    obj_faces   
 }
 
 
@@ -63,7 +69,7 @@ fn parse_face<'a>(
     vertex_coords: &Vec<Vec3>, 
     texture_coords: &Vec<Vec3>,
     normal_coords: &Vec<Vec3>
-) -> IResult<&'a str, ([Vec3; 3], [Vec3; 3], [Vec3; 3])> {
+) -> IResult<&'a str, ObjFace> {
     let (input, _) = char('f')(input)?;
     let (input, _) = multispace0(input)?;
 
@@ -73,11 +79,11 @@ fn parse_face<'a>(
     let (input, _) = multispace0(input)?;
     let (input, v3_vec) = separated_list0(tag("/"), map_res(digit1, str::parse::<usize>))(input)?;
     
-    let face = [vertex_coords[v1_vec[0]-1], vertex_coords[v2_vec[0]-1], vertex_coords[v3_vec[0]-1]];
-    let face_textures = [texture_coords[v1_vec[1]-1], texture_coords[v2_vec[1]-1], texture_coords[v3_vec[1]-1]];
+    let vertices = [vertex_coords[v1_vec[0]-1], vertex_coords[v2_vec[0]-1], vertex_coords[v3_vec[0]-1]];
+    let texture_vertices = [texture_coords[v1_vec[1]-1], texture_coords[v2_vec[1]-1], texture_coords[v3_vec[1]-1]];
     let normals = [normal_coords[v1_vec[2]-1], normal_coords[v2_vec[2]-1], normal_coords[v3_vec[2]-1]];
 
-    Ok((input, (face, face_textures, normals)))
+    Ok((input, ObjFace { vertices, texture_vertices, normals }))
 }
 
 

@@ -7,24 +7,13 @@ use glam::*;
 pub fn triangle<T, S>(
     image: &mut Image<T>, 
     texture_image: &mut Image<T>, 
-    screen_coords: [Vec3; 3], 
-    texture_coords: [Vec3; 3],
     shader: &S, 
+    screen_coords: [Vec3; 3], 
     zbuffer: &mut Vec<f32>)
 
 where 
     T: ColorSpace + Copy + std::fmt::Debug,
     S: Shader<T> {
-
-    // scale texture coords to image
-    let texture_coords = texture_coords.map(|v| {
-        Vec3::new(
-            v.x * texture_image.width as f32,
-            texture_image.height as f32 - v.y * texture_image.height as f32,
-            0.0
-        )
-        .floor()   
-    });
 
     // shrink bounding box to rasterize over
     let mut bboxmin = Vec2::new(image.width as f32 - 1.0, image.height as f32 - 1.0);
@@ -54,24 +43,15 @@ where
 
             if p_z > zbuffer[(p_x + p_y*image.width as i32) as usize] {
 
-                // use barycentric coordinates to locate corresponding pixel within texture_screen_coords in texture_img
-                let mut texture_color  = {
-                    let coord = bary_to_point(&bc_screen, &texture_coords);
-                    let index = (coord.x + coord.y*texture_image.height as f32) as usize;
-                    texture_image.data[index]
-                };
-
-                // run it through shader
+                // instantiate a color and run it through shader
+                let mut texture_color = T::white();
                 let discard = shader.fragment(bc_screen, &mut texture_color);
 
                 // if don't discard, update zbuffer + set pixel
                 if !discard {
-                    
                     zbuffer[(p_x + p_y*image.width as i32) as usize] = p_z;
                     image.set(p_x as usize, p_y as usize, texture_color).unwrap();
                 }
-
-                
             }
         }
     }
