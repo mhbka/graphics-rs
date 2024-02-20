@@ -1,17 +1,13 @@
 use crate::tgaimage::*;
+use crate::shader::Shader;
 use glam::*;
 
 
 // Triangle rasterization function with depth buffer + texture + perspective etc
-pub fn triangle<T>(
-    image: &mut Image<T>, 
-    texture_image: &mut Image<T>, 
-    face: [Vec3; 3], 
-    texture_face: [Vec3; 3], 
-    normals: [Vec3; 3],
-    zbuffer: &mut Vec<f32>, 
-)   
-where T: ColorSpace + Copy + std::fmt::Debug {
+pub fn triangle<T, S>(image: &mut Image<T>, texture_img: &mut Image<T>, screen_coords: [Vec3; 3], shader: &S, zbuffer: &mut Vec<f32>)   
+where 
+    T: ColorSpace + Copy + std::fmt::Debug,
+    S: Shader<T> {
     // instantiate transform matrices
     let eye = Vec3::new(-1.0, -1.0, 3.0);
     let centre = Vec3::new(0.0, 0.0, 0.0);
@@ -34,13 +30,6 @@ where T: ColorSpace + Copy + std::fmt::Debug {
         )
     });
 
-    // compute intensities (dot product of each vertex with corresponding normal)
-    let intensities = [
-        face[0].dot(normals[0]),
-        face[1].dot(normals[1]),
-        face[2].dot(normals[2]),
-    ];
-    
     // scale texture image too (idk why but this one doesn't use transform + scaling like above)
     // also requires VFLIPPING ? wat dafuq
     let texture_face_2d = texture_face.map(|v|{
@@ -98,41 +87,6 @@ where T: ColorSpace + Copy + std::fmt::Debug {
     }
 }
 
-
-// Return matrix for transforming [0, 1] coordinates into screen cube coordinates
-fn viewport(x: usize, y: usize, w: usize, h: usize) -> Affine3A {
-    let mut m = Affine3A::IDENTITY;
-    let depth = 255.0; // idk the guy said so
-
-    m.translation[0] = x as f32 + w as f32/2.0;
-    m.translation[1] = y as f32 + h as f32/2.0;
-    m.translation[2] = depth / 2.0;
-
-    m.x_axis[0] = w as f32 / 2.0;
-    m.y_axis[1] = h as f32 / 2.0;
-    m.z_axis[2] = depth / 2.0;
-
-
-    m
-}
-
-
-// Calculate matrix to "move" camera
-fn lookat(eye: Vec3, centre: Vec3, up: Vec3) -> Affine3A {
-    let z = (eye - centre).normalize();
-    let x = up.cross(z.clone()).normalize();
-    let y = z.cross(x.clone()).normalize();
-    let mut model_view = Affine3A::IDENTITY;
-
-    for i in 0..3 {
-        model_view.x_axis[i] = x[i];
-        model_view.y_axis[i] = y[i];
-        model_view.z_axis[i] = z[i];
-        model_view.translation[i] = -centre[i];
-    };
-
-    model_view
-}
 
 // Calculate barycentric weights, given 3 vertices and a point
 // Pass in Vec3, but we only use x and y
