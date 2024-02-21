@@ -5,10 +5,10 @@ use crate::rasterizer::bary_to_point;
 pub trait Shader<T: ColorSpace + Copy> {
     // transforms coordinates + prepares data for fragment shader
     fn vertex(&mut self, obj_face: ObjFace, light_dir: Vec3) -> [Vec3; 3];
-
     // modify color of pixel + return whether or not to discard it
     fn fragment(&self, bary_coords: Vec3, color: &mut T) -> bool;
 }
+
 
 // Gouraud shading without texture
 pub struct GouraudShader {
@@ -91,26 +91,30 @@ impl<T: ColorSpace + Copy> Shader<T> for GouraudTextureShader<T> {
 pub struct NormalCalcShader<T: ColorSpace + Copy> {
     varying_texture_coords: [Vec3; 3],
     uniform_texture: Image<T>,
+    uniform_normal: Image<RGB>, // image containing xyz -> rgb mapping for normal vector of each pixel
     uniform_transform: Affine3A,
-    uniform_transform_invt: Affine3A
+    uniform_transform_invt: Affine3A,
+    uniform_light_dir: Vec3
 }
 
 impl<T: ColorSpace + Copy> NormalCalcShader<T> {
-    pub fn new(transform: Affine3A, texture: Image<T>) -> Self {
+    pub fn new(texture_img: Image<T>, normal_img: Image<RGB>, transform: Affine3A) -> Self {
         NormalCalcShader {
             varying_texture_coords: [Vec3::new(0.0, 0.0, 0.0); 3],
-            uniform_texture: texture,
+            uniform_texture: texture_img,
+            uniform_normal: normal_img,
             uniform_transform: transform,
-            uniform_transform_invt: Affine3A::from_mat4(Mat4::from(transform.clone()).inverse().transpose())
+            uniform_transform_invt: Affine3A::from_mat4(Mat4::from(transform.clone()).inverse().transpose()),
+            uniform_light_dir: Vec3::ZERO // need to store here since i'm using this in fragment fn, instead of vertex fn
         }
     }
 }
 
-/*
+
 impl<T: ColorSpace + Copy> Shader<T> for NormalCalcShader<T> {
     fn vertex(&mut self, obj_face: ObjFace, light_dir: Vec3) -> [Vec3; 3] {
+        self.uniform_light_dir = light_dir; 
         let mut transformed_face = obj_face.vertices.clone();
-        let normals = obj_face.normals;
         for i in 0..3 {
             self.varying_texture_coords[i] = obj_face.texture_vertices[i];
             transformed_face[i] = self.uniform_transform.transform_point3(obj_face.vertices[i]);
@@ -119,12 +123,21 @@ impl<T: ColorSpace + Copy> Shader<T> for NormalCalcShader<T> {
     }
 
     fn fragment(&self, bary_coords: Vec3, color: &mut T) -> bool {
-        *color = {
-            let mut interpolated_coords = Vec3::new(0.0, 0.0, 0.0);
-            for i in 0..3 { interpolated_coords += self.varying_texture_coords[i] * bary_coords; }
-            self.uniform_texture.get(interpolated_coords.x as usize, interpolated_coords.y as usize).unwrap()
+        let interpolated_coords = bary_to_point(&bary_coords, &self.varying_texture_coords);
+        *color = self.uniform_texture.get(interpolated_coords.x as usize, interpolated_coords.y as usize).unwrap();
+        let normal = {
+            let normal_color = self.uniform_normal.get(interpolated_coords.x as usize, interpolated_coords.y as usize).unwrap();
+            let untransformed_normal = Vec3::new( //map rgb -> xyz
+                2.0 * (normal_color.r as f32 / 255.0) - 1.0,
+                2.0 * (normal_color.g as f32 / 255.0) - 1.0,
+                2.0 * (normal_color.b as f32 / 255.0) - 1.0
+            );
+            //println!("{:?}", untransformed_normal);
+            self.uniform_transform_invt.transform_point3(untransformed_normal).normalize()
         };
-
+        let light = self.uniform_transform.transform_point3(self.uniform_light_dir).normalize();
+        let intensity = normal.dot(light);
+        color.shade(intensity);
+        false
     }
 }
- */
