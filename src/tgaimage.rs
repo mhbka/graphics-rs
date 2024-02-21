@@ -1,4 +1,4 @@
-use std::{fs::File, io::{self, BufWriter, Write, Read}};
+use std::{fmt::Debug, fs::File, io::{self, BufWriter, Read, Write}};
 
 use tinytga::RawTga;
 
@@ -289,7 +289,7 @@ impl <T: ColorSpace + Copy> Image<T>  {
 }       
 
 // converts tinytga image into our format   
-pub fn convert_from_tinytga<T>(image_path: &str) -> Image<T> where T: ColorSpace + Copy {
+pub fn convert_from_tinytga<T>(image_path: &str) -> Image<T> where T: ColorSpace + Copy + Debug {
     let mut data = Vec::<u8>::new(); 
     File::open(image_path).unwrap().read_to_end(&mut data).unwrap();
     let img = RawTga::from_slice(&data[..]).unwrap();
@@ -299,14 +299,13 @@ pub fn convert_from_tinytga<T>(image_path: &str) -> Image<T> where T: ColorSpace
     
     for pixel in raw_pixels {
         let (x, y) = (pixel.position.x, pixel.position.y);
-        let color = pixel.color;
-        new_pixels[(x + y*width as i32) as usize] = T::from_rgba(
-            RGBA {
-            b: (color & 0xFF) as u8,
-            g: ((color >> 8) & 0xFF) as u8,
-            r: ((color >> 16) & 0xFF) as u8,
-            a: ((color >> 24) & 0xFF) as u8
-        });
+        let color = RGBA {
+            b: (pixel.color & 0xFF) as u8,
+            g: ((pixel.color >> 8) & 0xFF) as u8,
+            r: ((pixel.color >> 16) & 0xFF) as u8,
+            a: ((pixel.color >> 24) & 0xFF) as u8
+        };
+        new_pixels[(x + y*width as i32) as usize] = T::from_rgba(color);
     }
 
     let mut image: Image<T> = Image::new(width as usize, height as usize);

@@ -189,22 +189,24 @@ impl<T: ColorSpace + Copy> Shader<T> for NormalSpecularShader<T> {
             self.uniform_transform_invt.transform_point3(untransformed_normal).normalize()
         };
         let light = self.uniform_transform.transform_point3(self.uniform_light_dir).normalize();
-        let reflection = (normal * (2.0 * normal.dot(light)) - light).normalize();
+        let reflection = (normal * (2.0 * normal.cross(light)) - light).normalize();
+        let diffuse_light = normal.dot(light).max(0.0);
         let specularity = {
             let spec_color = self.uniform_specular.get(interpolated_coords.x as usize, interpolated_coords.y as usize).unwrap();
             let spec_power = spec_color.i as f32 / 255.0;
             reflection.z.max(0.0).powf(spec_power) // black magic
-        };
-        let diffuse_light = normal.dot(light).max(0.0);
-
+        };      
+        
         // modify each component in color, then assign back to it
+        // TO DO: see the effects of each component then see how we can fix this
         let ambient_w = 5.0;
         let diffuse_w = 1.0;
         let spec_w = 0.6;
         *color = self.uniform_texture.get(interpolated_coords.x as usize, interpolated_coords.y as usize).unwrap();
         let mut color_vec = color.to_vec();
+        let old = color_vec.clone();
         for c in &mut color_vec {
-            *c = f32::min(ambient_w + *c as f32*(diffuse_w*diffuse_light + spec_w*specularity), 255.0) as u8;
+            *c = f32::min(ambient_w + (*c as f32)*(diffuse_w*diffuse_light + spec_w*specularity), 255.0) as u8;
         }
         color.from_vec(color_vec).unwrap();
         false
