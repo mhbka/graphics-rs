@@ -19,7 +19,9 @@ fn main() {
     // instantiate common things
     let (height, width) = (1024, 1024);
     let obj_faces = parse_obj("african_head.obj");
-    let texture_image = convert_from_tinytga("texture.tga");
+    let texture_image = convert_from_tinytga("african_head_texture.tga");
+    let normal_image = convert_from_tinytga("african_head_nm.tga");
+    let specular_image: Image<Grayscale> = convert_from_tinytga("african_head_spec.tga");
     let transform = initialize_transform(height, width);
 
     // instantiate for gouraud shader
@@ -33,13 +35,17 @@ fn main() {
     // instantiate for normal-mapped shader w/ texture
     let mut image3: Image<RGB> = Image::new(width, height);
     let mut zbuffer3 = vec![f32::MIN; image.width * image.height];
-    let normal_img = convert_from_tinytga("normal.tga");
+    
+
+    // instantiate for normal-mapped shader w/ texture and specular mapping
+    let mut image4: Image<RGB> = Image::new(width, height);
+    let mut zbuffer4 = vec![f32::MIN; image.width * image.height];
 
     // instantiate shaders
     let mut shader = GouraudShader::new(transform.clone());
     let mut texture_shader = GouraudTextureShader::new(texture_image.clone(), transform.clone());
-    let mut normal_mapped_shader = NormalCalcShader::new(texture_image.clone(), normal_img, transform.clone());
-    
+    let mut normal_mapped_shader = NormalMappedShader::new(texture_image.clone(), normal_image.clone(), transform.clone());
+    let mut normal_specular_shader = NormalSpecularShader::new(texture_image.clone(), normal_image.clone(), specular_image.clone(), transform.clone());
 
     // timed block //
     let now = time::Instant::now();
@@ -55,17 +61,20 @@ fn main() {
         });
         
         let light_dir = Vec3::new(-1.0, -1.0, 3.0).normalize();
-
-        let screen_coords = Shader::<RGB>::vertex(&mut texture_shader, obj_face.clone(), light_dir);
-        let screen_coords2 = Shader::<RGB>::vertex(&mut shader, obj_face.clone(), light_dir);
-        let screen_coords3 = Shader::<RGB>::vertex(&mut normal_mapped_shader, obj_face, light_dir);
+        
+        let screen_coords = Shader::<RGB>::vertex(&mut shader, obj_face.clone(), light_dir);
+        let screen_coords2 = Shader::<RGB>::vertex(&mut texture_shader, obj_face.clone(), light_dir);
+        let screen_coords3 = Shader::<RGB>::vertex(&mut normal_mapped_shader, obj_face.clone(), light_dir);
+        let screen_coords4 = Shader::<RGB>::vertex(&mut normal_specular_shader, obj_face.clone(), light_dir);
 
         assert_eq!(screen_coords, screen_coords2);
         assert_eq!(screen_coords2, screen_coords3);
+        assert_eq!(screen_coords3, screen_coords4);
 
         triangle(&mut image, &shader, screen_coords, &mut zbuffer);
         triangle(&mut image2, &texture_shader, screen_coords2,  &mut zbuffer2);
         triangle(&mut image3, &normal_mapped_shader, screen_coords3,  &mut zbuffer3);
+        triangle(&mut image4, &normal_specular_shader, screen_coords4,  &mut zbuffer4);
     }
 
     let time_taken = now.elapsed();
@@ -75,7 +84,7 @@ fn main() {
     image.write_tga_file("img.tga", true, false).unwrap();
     image2.write_tga_file("img2.tga", true, false).unwrap();
     image3.write_tga_file("img3.tga", true, false).unwrap();
-
+    image4.write_tga_file("img4.tga", true, false).unwrap();
 }
 
 

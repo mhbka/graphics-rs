@@ -6,7 +6,10 @@ use tinytga::RawTga;
 pub trait ColorSpace {
     fn new() -> Self;
     fn white() -> Self;
+    fn from_rgba(color: RGBA) -> Self;
     fn shade(&mut self, intensity: f32);
+    fn to_vec(&self) -> Vec<u8>;
+    fn from_vec(&mut self, colors: Vec<u8>) -> Result<(), String>;
     const BPP: u8;
 }
 
@@ -35,9 +38,24 @@ impl ColorSpace for Grayscale {
     fn white() -> Self {
         Grayscale {i: 255}
     }
+    fn from_rgba(color: RGBA) -> Self {
+        Grayscale {i: *vec![color.r, color.g, color.b, color.a].iter().max().unwrap()}
+    }
     fn shade(&mut self, intensity: f32) {
         if intensity > 1.0 { return }
         self.i = ((self.i as f32) * intensity) as u8;
+    }
+    fn to_vec(&self) -> Vec<u8> {
+        vec![self.i]
+    }
+    fn from_vec(&mut self, colors: Vec<u8>) -> Result<(), String> {
+        if colors.len()!=1 { 
+            return Err(
+                format!("Must have 1 element in vector to convert to Grayscale ({:?})", colors)
+            ); 
+        }
+        self.i = colors[0];
+        Ok(())
     }
     const BPP: u8 = 1;
 }
@@ -49,11 +67,28 @@ impl ColorSpace for RGB {
     fn white() -> Self {
         RGB {r: 255, g: 255, b: 255}
     }
+    fn from_rgba(color: RGBA) -> Self {
+        RGB {r: color.r, g: color.g, b: color.b}
+    }
     fn shade(&mut self, intensity: f32) {
         if intensity > 1.0 { return }
         self.r = ((self.r as f32) * intensity) as u8;
         self.g = ((self.g as f32) * intensity) as u8;
         self.b = ((self.b as f32) * intensity) as u8;
+    }
+    fn to_vec(&self) -> Vec<u8> {
+        vec![self.r, self.g, self.b]
+    }
+    fn from_vec(&mut self, colors: Vec<u8>) -> Result<(), String> {
+        if colors.len()!=3 { 
+            return Err(
+                format!("Must have 3 elements in vector to convert to Grayscale ({:?})", colors)
+            ); 
+        }
+        self.r = colors[0];
+        self.g = colors[1];
+        self.b = colors[2];
+        Ok(())
     }
     const BPP: u8 = 3;
 }
@@ -66,12 +101,30 @@ impl ColorSpace for RGBA {
     fn white() -> Self {
         RGBA {r: 255, g: 255, b: 255, a: 255}
     }
+    fn from_rgba(color: RGBA) -> Self {
+        color
+    }
     fn shade(&mut self, intensity: f32) {
         if intensity > 1.0 { return }
         self.r = ((self.r as f32) * intensity) as u8;
         self.g = ((self.g as f32) * intensity) as u8;
         self.b = ((self.b as f32) * intensity) as u8;
         self.a = ((self.a as f32) * intensity) as u8;
+    }
+    fn to_vec(&self) -> Vec<u8> {
+        vec![self.r, self.g, self.b]
+    }
+    fn from_vec(&mut self, colors: Vec<u8>) -> Result<(), String> {
+        if colors.len()!=4 { 
+            return Err(
+                format!("Must have 4 element in vector to convert to RGBA ({:?})", colors)
+            ); 
+        }
+        self.r = colors[0];
+        self.g = colors[1];
+        self.b = colors[2];
+        self.a = colors[3];
+        Ok(())
     }
     const BPP: u8 = 4;
 }
@@ -236,26 +289,27 @@ impl <T: ColorSpace + Copy> Image<T>  {
 }       
 
 // converts tinytga image into our format   
-pub fn convert_from_tinytga(image_path: &str) -> Image<RGB> {
+pub fn convert_from_tinytga<T>(image_path: &str) -> Image<T> where T: ColorSpace + Copy {
     let mut data = Vec::<u8>::new(); 
     File::open(image_path).unwrap().read_to_end(&mut data).unwrap();
     let img = RawTga::from_slice(&data[..]).unwrap();
     let (height, width) = (img.size().height, img.size().width);
     let raw_pixels: Vec<_> = img.pixels().collect();
-    let mut new_pixels = vec![RGB::new(); (height*width) as usize];
+    let mut new_pixels = vec![T::new(); (height*width) as usize];
     
     for pixel in raw_pixels {
         let (x, y) = (pixel.position.x, pixel.position.y);
         let color = pixel.color;
-        new_pixels[(x + y*width as i32) as usize] = RGB {
+        new_pixels[(x + y*width as i32) as usize] = T::from_rgba(
+            RGBA {
             b: (color & 0xFF) as u8,
             g: ((color >> 8) & 0xFF) as u8,
             r: ((color >> 16) & 0xFF) as u8,
-            // a: ((color >> 24) & 0xFF) as u8
-        };
+            a: ((color >> 24) & 0xFF) as u8
+        });
     }
 
-    let mut image: Image<RGB> = Image::new(width as usize, height as usize);
+    let mut image: Image<T> = Image::new(width as usize, height as usize);
     image.data = new_pixels;
     image
 }
