@@ -1,27 +1,7 @@
 use glam::*;
 
-pub struct Transform {
-    model_view: Affine3A,
-    projection: Affine3A,
-    viewport: Affine3A
-}
-
-impl Transform {
-    pub fn new(model_view: Affine3A, projection: Affine3A, viewport: Affine3A) -> Self {
-        Transform { model_view, projection, viewport }
-    }
-
-    pub fn transform_point(&self, point: Vec3) -> Vec3 {
-        self.viewport.transform_point3(
-            self.projection.transform_point3(
-                self.model_view.transform_point3(point)
-            )
-        )
-    }
-}
-
 // initialize a transform
-pub fn initialize_transform(height: usize, width: usize) -> Transform {
+pub fn initialize_transform(height: usize, width: usize) -> Affine3A {
     let eye = Vec3::new(-1.0, -1.0, 3.0);
     let centre = Vec3::new(0.0, 0.0, 0.0);
     let up = Vec3::new(0.0, 1.0, 0.0);
@@ -30,7 +10,7 @@ pub fn initialize_transform(height: usize, width: usize) -> Transform {
     let projection = Affine3A::IDENTITY;
     let viewport = viewport(width/8, height/8, width*3/4, height*3/4);
 
-    Transform { model_view, projection, viewport}
+    viewport * projection * model_view
 }
 
 // Return matrix for transforming [0, 1] coordinates into screen cube coordinates
@@ -46,10 +26,8 @@ fn viewport(x: usize, y: usize, w: usize, h: usize) -> Affine3A {
     m.y_axis[1] = h as f32 / 2.0;
     m.z_axis[2] = depth / 2.0;
 
-
     m
 }
-
 
 // Calculate matrix to "move" camera
 fn lookat(eye: Vec3, centre: Vec3, up: Vec3) -> Affine3A {

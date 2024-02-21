@@ -1,12 +1,11 @@
 use crate::tgaimage::*;
-use crate::shader::Shader;
+use crate::shaders::Shader;
 use glam::*;
 
 
 // Triangle rasterization function with depth buffer + texture + perspective etc
 pub fn triangle<T, S>(
-    image: &mut Image<T>, 
-    texture_image: &mut Image<T>, 
+    image: &mut Image<T>,
     shader: &S, 
     screen_coords: [Vec3; 3], 
     zbuffer: &mut Vec<f32>)
@@ -77,16 +76,11 @@ fn barycentric(vertices: &[Vec3; 3], p: &Vec3) -> Vec3 {
     )
 }
 
-// Convert barycentric coords into a 2D point
-fn bary_to_point(bc_coords: &Vec3, vertices: &[Vec3; 3]) -> Vec3 {
+// Convert barycentric coords into a point
+pub fn bary_to_point(bc_coords: &Vec3, vertices: &[Vec3; 3]) -> Vec3 {
     Vec3::new(
         bc_coords.x*vertices[0].x + bc_coords.y*vertices[1].x + bc_coords.z*vertices[2].x,
         bc_coords.x*vertices[0].y + bc_coords.y*vertices[1].y + bc_coords.z*vertices[2].y,
         bc_coords.x*vertices[0].z + bc_coords.y*vertices[1].z + bc_coords.z*vertices[2].y,
     ).floor()
-}
-
-// Convert barycentric coords into a single scalar
-fn bary_to_scalar(bc_coords: &Vec3, weights: &[f32; 3]) -> f32 {
-    bc_coords.x*weights[0] + bc_coords.y*weights[1] + bc_coords.z*weights[2]
 }

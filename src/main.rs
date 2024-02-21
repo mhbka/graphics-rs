@@ -2,10 +2,10 @@ mod tgaimage;
 mod line;
 mod obj;
 mod rasterizer;
-mod shader;
+mod shaders;
 mod transform;
 
-use crate::shader::*;
+use crate::shaders::*;
 use crate::tgaimage::*;
 use crate::obj::*;
 use crate::transform::*;
@@ -17,18 +17,19 @@ use std::time;
 fn main() {
 
     // fetch image and texture
-    let mut image = Image::new(1024, 1024);
-    let mut image2 = Image::new(1024, 1024);
-    let mut texture_image = convert_from_tinytga("texture.tga");
+    let mut image: Image<RGB> = Image::new(1024, 1024);
+    let mut image2: Image<RGB> = Image::new(1024, 1024);
+    let texture_image: Image<RGB> = convert_from_tinytga("texture.tga");
 
     // inst some stuff
     let mut zbuffer = vec![f32::MIN; image.width * image.height];
+    let mut zbuffer2 = vec![f32::MIN; image.width * image.height];
     let obj_faces = parse_obj("african_head.obj");
     let transform = initialize_transform(image.height, image.width);
 
     // inst shaders
-    let mut shader = GouraudShader::new();
-    let mut text_shader = GouraudTextureShader::new(texture_image.clone());
+    let mut shader = GouraudShader::new(transform.clone());
+    let mut texture_shader = GouraudTextureShader::new(texture_image.clone(), transform.clone());
 
     // timed block //
     let now = time::Instant::now();
@@ -42,11 +43,12 @@ fn main() {
                 0.0
             ).floor() 
         });
-
-        let screen_coords = Shader::<RGB>::vertex(&mut text_shader, obj_face.clone(), Vec3::new(-1.0, -1.0, 3.0).normalize(), &transform);
-        Shader::<RGB>::vertex(&mut shader, obj_face, Vec3::new(-1.0, -1.0, 3.0).normalize(), &transform);
-        triangle(&mut image, &mut texture_image, &shader, screen_coords,  &mut zbuffer);
-        triangle(&mut image2, &mut texture_image, &text_shader, screen_coords,  &mut zbuffer);
+        
+        let screen_coords = Shader::<RGB>::vertex(&mut texture_shader, obj_face.clone(), Vec3::new(-1.0, -1.0, 3.0).normalize());
+        let screen_coords2 = Shader::<RGB>::vertex(&mut shader, obj_face, Vec3::new(-1.0, -1.0, 3.0).normalize());
+        assert_eq!(screen_coords, screen_coords2);
+        triangle(&mut image, &shader, screen_coords, &mut zbuffer);
+        triangle(&mut image2, &texture_shader, screen_coords2,  &mut zbuffer2);
     }
 
     let time_taken = now.elapsed();

@@ -20,7 +20,7 @@ pub struct ObjFace {
 
 // parse the object from file
 // returns tuple of 3 Vec3; the face vertices, texture vertices, and normal vectors
-pub fn parse_obj(filepath: &str) -> Vec<(ObjFace)> { 
+pub fn parse_obj(filepath: &str) -> Vec<ObjFace> { 
     let contents = fs::read_to_string(filepath)
         .expect(&format!("No such file at this filepath: {filepath}")[..]);
 

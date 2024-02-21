@@ -135,6 +135,13 @@ impl <T: ColorSpace + Copy> Image<T>  {
         Ok(())
     }
 
+    pub fn get(&self, x: usize, y: usize) -> Result<T, String> {
+        if x>=self.width || y>=self.height {
+            return Err(format!("OOB pixel coordinate: {x} by {y} ({} by {})", self.width, self.height));
+        }
+        Ok(self.data[x + y*self.width])
+    }
+
     fn data_vec(&self) -> Vec<u8> {
         self.data
             .iter()
