@@ -1,6 +1,12 @@
 use glam::*;
 
-/// Holds the 3 components of a transform.
+/// Holds the 3 components of a transform:
+///
+/// viewport: Maps [-1, 1] into screenspace coordinates
+///
+/// projection: Performs perspective deformation
+///
+/// model_view: Shifts the "camera" and moves coordinate to its place in the world
 #[derive(Clone, Copy)]
 pub struct Transform {
     pub viewport: Affine3A,
