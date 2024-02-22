@@ -81,6 +81,6 @@ pub fn bary_to_point(bc_coords: &Vec3, vertices: &[Vec3; 3]) -> Vec3 {
     Vec3::new(
         bc_coords.x*vertices[0].x + bc_coords.y*vertices[1].x + bc_coords.z*vertices[2].x,
         bc_coords.x*vertices[0].y + bc_coords.y*vertices[1].y + bc_coords.z*vertices[2].y,
-        bc_coords.x*vertices[0].z + bc_coords.y*vertices[1].z + bc_coords.z*vertices[2].y,
+        bc_coords.x*vertices[0].z + bc_coords.y*vertices[1].z + bc_coords.z*vertices[2].z,
     ).floor()
 }
