@@ -61,9 +61,9 @@ pub fn parse_obj(filepath: &str) -> Vec<ObjFace> {
     obj_faces   
 }
 
-
 // face parsing
 // each face has 3 components divided by "/", corresponding to face, texture, and normal indices.
+// NOTE: indices in .obj files start from 1, hence why we must subtract 1 before using them.
 fn parse_face<'a>(
     input: &'a str, 
     vertex_coords: &Vec<Vec3>, 
@@ -86,7 +86,6 @@ fn parse_face<'a>(
     Ok((input, ObjFace { vertices, texture_vertices, normals }))
 }
 
-
 // vertex parsing
 fn parse_vertex(input: &str) -> IResult<&str, Vec3> {
     let (input, _) = char('v')(input)?;
@@ -94,7 +93,6 @@ fn parse_vertex(input: &str) -> IResult<&str, Vec3> {
     let (input, (x, _, y, _, z)) = tuple((float, space1, float, space1, float))(input)?;
     Ok((input, Vec3 { x, y, z }))
 }
-
 
 // texture parsing
 fn parse_texture(input: &str) -> IResult<&str, Vec3> {

@@ -2,11 +2,11 @@ use glam::*;
 
 /// Holds the 3 components of a transform:
 ///
-/// viewport: Maps [-1, 1] into screenspace coordinates
+/// 1. model_view: Shifts the "camera" and translates a point's coordinate to its world position.
 ///
-/// projection: Performs perspective deformation
+/// 2. projection: Performs perspective deformation.
 ///
-/// model_view: Shifts the "camera" and moves coordinate to its place in the world
+/// 3. viewport: Maps local coordinates into pixel coordinates.
 #[derive(Clone, Copy)]
 pub struct Transform {
     pub viewport: Affine3A,
@@ -18,17 +18,6 @@ impl Transform {
     /// Obtain the entire transform.
     pub fn get_whole_transform(&self) -> Affine3A {
         self.viewport * self.projection * self.model_view
-    }
-
-    /// Obtain inverse-transpose of the entire transform.
-    pub fn get_inverse_transpose(&self) -> Affine3A {
-        Affine3A::from_mat4(
-            Mat4::from(
-                self.get_whole_transform()
-            )
-            .inverse()
-            .transpose()
-        )
     }
 }
 

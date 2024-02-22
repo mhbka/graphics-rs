@@ -42,9 +42,10 @@ impl<T: ColorSpace + Copy> Shader<T> for NormalMappedShader<T> {
         let transform = projection * model_view;
         let transform_inv_tr = Mat4::from(transform).inverse().transpose();
 
-        // compute
+        // compute actual pixel coordinate for texture + normal image
         let interpolated_coords = bary_to_point(&bary_coords, &self.varying_texture_coords);
-        *color = self.uniform_texture.get(interpolated_coords.x as usize, interpolated_coords.y as usize).unwrap();
+        
+        // get the normal vec at this pixel
         let normal = {
             let normal_color = self.uniform_normal.get(interpolated_coords.x as usize, interpolated_coords.y as usize).unwrap();
             let untransformed_normal = Vec3::new( //map rgb -> xyz
@@ -56,8 +57,13 @@ impl<T: ColorSpace + Copy> Shader<T> for NormalMappedShader<T> {
                 .transform_point3(untransformed_normal)
                 .normalize()
         };
+
+        // transform light vector and get intensity here
         let light = transform.transform_point3(self.uniform_light_dir);
         let intensity = normal.dot(light);
+
+        // shade the color
+        *color = self.uniform_texture.get(interpolated_coords.x as usize, interpolated_coords.y as usize).unwrap();
         color.shade(intensity);
         false
     }
@@ -106,8 +112,10 @@ impl<T: ColorSpace + Copy> Shader<T> for NormalSpecularShader<T> {
         let transform = projection * model_view;
         let transform_inv_tr = Mat4::from(transform).inverse().transpose();
 
-        // compute
+        // compute actual coords for corresponding pixel in texture + specular + normal images 
         let interpolated_coords = bary_to_point(&bary_coords, &self.varying_texture_coords);
+
+        // get normal of corresponding pixel
         let normal = {
             let normal_color = self.uniform_normal.get(interpolated_coords.x as usize, interpolated_coords.y as usize).unwrap();
             transform_inv_tr.transform_point3(
@@ -118,26 +126,28 @@ impl<T: ColorSpace + Copy> Shader<T> for NormalSpecularShader<T> {
                 )
             ).normalize()
         };
+        
+        // get transformed light vec
         let light = transform.transform_point3(self.uniform_light_dir).normalize();
-        let reflection = (normal * (2.0 * normal.dot(light)) - light).normalize();
 
-        // diffuse light
+        // diffuse light - normal lighting
         let diffuse_light = normal.dot(light).max(0.0);
 
-        // specularity
-        let specularity = {
+        // specular light - "highlight" from reflection of light
+        let reflection = (normal * (2.0 * normal.dot(light)) - light).normalize();
+        let specular_light = {
             let spec_color = self.uniform_specular.get(interpolated_coords.x as usize, interpolated_coords.y as usize).unwrap();
             (reflection.z.max(0.0)).powf(spec_color.i as f32) // black magic
         };      
         
-        // use ambient (const) + diffuse + specular light to modify each color
+        // use weighted ambient + diffuse + specular light to modify each color
         let ambient_w = 5.0;
         let diffuse_w = 1.0;
         let spec_w = 1.0;
         *color = self.uniform_texture.get(interpolated_coords.x as usize, interpolated_coords.y as usize).unwrap();
         let mut color_vec = color.to_vec();
         for c in &mut color_vec {
-            *c = f32::min(ambient_w + (*c as f32)*(diffuse_w*diffuse_light + spec_w*specularity), 255.0) as u8;
+            *c = f32::min(ambient_w + (*c as f32)*(diffuse_w*diffuse_light + spec_w*specular_light), 255.0) as u8;
         }
         color.from_vec(color_vec).unwrap();
         false
