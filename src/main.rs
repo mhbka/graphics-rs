@@ -19,10 +19,10 @@ fn main() {
 
     // instantiate common things
     let (height, width) = (1024, 1024);
-    let obj_faces = parse_obj("african_head.obj");
-    let texture_image: Image<RGB> = convert_from_tinytga("african_head_texture.tga");
-    let normal_image: Image<RGB> = convert_from_tinytga("african_head_nm.tga");
-    let specular_image: Image<Grayscale> = convert_from_tinytga("african_head_spec.tga");
+    let obj_faces = parse_obj("assets/african_head.obj");
+    let texture_image: Image<RGB> = convert_from_tinytga("assets/african_head_texture.tga");
+    let normal_image: Image<RGB> = convert_from_tinytga("assets/african_head_nm.tga");
+    let specular_image: Image<Grayscale> = convert_from_tinytga("assets/african_head_spec.tga");
     let transform = initialize_transform(height, width);
 
     // instantiate for gouraud shader
@@ -87,10 +87,10 @@ fn main() {
     add_axis_lines(&mut image4, transform.get_whole_transform());
 
     println!("{:?}", time_taken);
-    image.write_tga_file("img.tga", true, false).unwrap();
-    image2.write_tga_file("img2.tga", true, false).unwrap();
-    image3.write_tga_file("img3.tga", true, false).unwrap();
-    image4.write_tga_file("img4.tga", true, false).unwrap();
+    image.write_tga_file("output/img.tga", true, false).unwrap();
+    image2.write_tga_file("output/img2.tga", true, false).unwrap();
+    image3.write_tga_file("output/img3.tga", true, false).unwrap();
+    image4.write_tga_file("output/img4.tga", true, false).unwrap();
 }
 
 
