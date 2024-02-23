@@ -1,10 +1,10 @@
 pub mod shader;
 pub mod gouraud;
-pub mod normal_mapped;
+pub mod normal;
 
 pub use shader::Shader;
 pub use gouraud::{GouraudShader, GouraudTextureShader};
-pub use normal_mapped::{NormalMappedShader, NormalSpecularShader};
+pub use normal::{NormalMappedShader, NormalSpecularShader, DarbouxNormalSpecularShader};
 
 
 

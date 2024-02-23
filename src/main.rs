@@ -20,7 +20,7 @@ fn main() {
     // instantiate common things
     let (height, width) = (1024, 1024);
     let obj_faces = parse_obj("assets/african_head.obj");
-    let texture_image: Image<RGB> = convert_from_tinytga("assets/african_head_texture.tga");
+    let texture_image: Image<RGB> = convert_from_tinytga("assets/grid.tga");
     let normal_image: Image<RGB> = convert_from_tinytga("assets/african_head_nm.tga");
     let specular_image: Image<Grayscale> = convert_from_tinytga("assets/african_head_spec.tga");
     let transform = initialize_transform(height, width);
@@ -31,16 +31,15 @@ fn main() {
 
     // instantiate for gouraud shader w/ texture
     let mut image2: Image<RGB> = Image::new(width, height);
-    let mut zbuffer2 = vec![f32::MIN; image.width * image.height];
+    let mut zbuffer2 = zbuffer.clone();
 
     // instantiate for normal-mapped shader w/ texture
     let mut image3: Image<RGB> = Image::new(width, height);
-    let mut zbuffer3 = vec![f32::MIN; image.width * image.height];
-    
+    let mut zbuffer3 = zbuffer.clone();
 
     // instantiate for normal-mapped shader w/ texture and specular mapping
     let mut image4: Image<RGB> = Image::new(width, height);
-    let mut zbuffer4 = vec![f32::MIN; image.width * image.height];
+    let mut zbuffer4 = zbuffer.clone();
 
     // instantiate shaders
     let mut shader = GouraudShader::new(transform.clone());
