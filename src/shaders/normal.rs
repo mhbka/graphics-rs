@@ -158,6 +158,7 @@ impl<T: ColorSpace + Copy> Shader<T> for NormalSpecularShader<T> {
 // Shading using normal-mapped Darboux frame tga + specular lighting
 pub struct DarbouxNormalSpecularShader<T: ColorSpace + Copy> {
     varying_texture_coords: [Vec3; 3],
+    varying_normals: [Vec3; 3], // need to interpolate normal for darboux transform computation
     uniform_texture: Image<T>,
     uniform_darboux_normal: Image<RGB>, // image containing xyz -> rgb mapping for normal vector of each pixel
     uniform_specular: Image<Grayscale>, // image containing mapping for "glossiness" of each pixel
@@ -169,6 +170,7 @@ impl<T: ColorSpace + Copy> DarbouxNormalSpecularShader<T> {
     pub fn new(texture_img: Image<T>, normal_img: Image<RGB>, specular_img: Image<Grayscale>, transform: Transform) -> Self {
         DarbouxNormalSpecularShader {
             varying_texture_coords: [Vec3::new(0.0, 0.0, 0.0); 3],
+            varying_normals: [Vec3::new(0.0, 0.0, 0.0); 3],
             uniform_texture: texture_img,
             uniform_darboux_normal: normal_img,
             uniform_specular: specular_img,
@@ -184,9 +186,13 @@ impl<T: ColorSpace + Copy> Shader<T> for DarbouxNormalSpecularShader<T> {
         let mut transformed_face = obj_face.vertices.clone();
         for i in 0..3 {
             self.varying_texture_coords[i] = obj_face.texture_vertices[i];
+            self.varying_normals[i] = Mat4::from(self.uniform_transform.projection * self.uniform_transform.model_view)
+                                    .inverse()
+                                    .transpose()
+                                    .transform_point3(obj_face.normals[i]);
             transformed_face[i] = self.uniform_transform
                                     .get_whole_transform()
-                                    .transform_point3(obj_face.vertices[i]);
+                                    .transform_point3(obj_face.vertices[i])
         }
         transformed_face
     }
@@ -200,16 +206,43 @@ impl<T: ColorSpace + Copy> Shader<T> for DarbouxNormalSpecularShader<T> {
         // compute actual coords for corresponding pixel in texture + specular + normal images 
         let interpolated_coords = bary_to_point(&bary_coords, &self.varying_texture_coords);
 
-        // get normal of corresponding pixel
+        // get tangent normal of corresponding pixel, compute tangent basis, then convert to global coordinatess
         let normal = {
+            //read tangent normal
             let normal_color = self.uniform_darboux_normal.get(interpolated_coords.x as usize, interpolated_coords.y as usize).unwrap();
-            transform_inv_tr.transform_point3(
+            let tangent_normal = transform_inv_tr.transform_point3(
                 Vec3::new( //map rgb -> xyz
                 2.0 * (normal_color.r as f32 / 255.0) - 1.0,
                 2.0 * (normal_color.g as f32 / 255.0) - 1.0,
                 2.0 * (normal_color.b as f32 / 255.0) - 1.0
                 )
-            ).normalize()
+            ).normalize();
+
+            // interpolate normal 
+            let interpolated_normal = bary_to_point(&bary_coords, &self.varying_normals);
+
+            // compute darboux transform + 2 vectors that form tangent basis
+            let darboux_transform = Mat3::from_cols_array_2d(
+              &[
+                (self.varying_texture_coords[1] - self.varying_texture_coords[0]).to_array(),
+                (self.varying_texture_coords[2] - self.varying_texture_coords[0]).to_array(),
+                interpolated_normal.to_array() 
+              ]
+            );
+            let darboux_transform_inv_tr = darboux_transform.inverse().transpose();
+            let basis_1 = darboux_transform_inv_tr * Vec3::new(
+                self.varying_texture_coords[0].y - self.varying_texture_coords[0].x,
+                self.varying_texture_coords[0].z - self.varying_texture_coords[0].x,
+                0.0 
+            );
+            let basis_2 = darboux_transform_inv_tr * Vec3::new(
+                self.varying_texture_coords[1].y - self.varying_texture_coords[1].x,
+                self.varying_texture_coords[1].z - self.varying_texture_coords[1].x,
+                0.0 
+            );
+            
+
+            //
         };
         
         // get transformed light vec
