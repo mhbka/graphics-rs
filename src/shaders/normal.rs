@@ -167,15 +167,15 @@ pub struct DarbouxNormalSpecularShader<T: ColorSpace + Copy> {
 }
 
 impl<T: ColorSpace + Copy> DarbouxNormalSpecularShader<T> {
-    pub fn new(texture_img: Image<T>, normal_img: Image<RGB>, specular_img: Image<Grayscale>, transform: Transform) -> Self {
+    pub fn new(texture_img: Image<T>, darboux_img: Image<RGB>, specular_img: Image<Grayscale>, transform: Transform) -> Self {
         DarbouxNormalSpecularShader {
             varying_texture_coords: [Vec3::new(0.0, 0.0, 0.0); 3],
-            varying_normals: [Vec3::new(0.0, 0.0, 0.0); 3],
+            varying_normals: [Vec3::new(0.0, 0.0, 0.0); 3], // vertex normals, for interpolation in fragment shader
             uniform_texture: texture_img,
-            uniform_darboux_normal: normal_img,
+            uniform_darboux_normal: darboux_img,
             uniform_specular: specular_img,
             uniform_transform: transform,
-            uniform_light_dir: Vec3::ZERO // need to store here since i'm using this in fragment fn, instead of vertex fn
+            uniform_light_dir: Vec3::ZERO // need to store here since i'm using this in fragment shader, instead of vertex fn
         }
     }
 }
@@ -222,13 +222,12 @@ impl<T: ColorSpace + Copy> Shader<T> for DarbouxNormalSpecularShader<T> {
             let interpolated_normal = bary_to_point(&bary_coords, &self.varying_normals);
 
             // compute darboux transform + 2 vectors that form tangent basis
-            let darboux_transform = Mat3::from_cols_array_2d(
-              &[
-                (self.varying_texture_coords[1] - self.varying_texture_coords[0]).to_array(),
-                (self.varying_texture_coords[2] - self.varying_texture_coords[0]).to_array(),
-                interpolated_normal.to_array() 
-              ]
-            );
+            let darboux_transform = Mat3::from_cols(
+                self.varying_texture_coords[1] - self.varying_texture_coords[0],
+                self.varying_texture_coords[2] - self.varying_texture_coords[0],
+                interpolated_normal 
+              
+            ).transpose(); // TODO: is this correct?
             let darboux_transform_inv_tr = darboux_transform.inverse().transpose();
             let basis_1 = darboux_transform_inv_tr * Vec3::new(
                 self.varying_texture_coords[0].y - self.varying_texture_coords[0].x,
@@ -240,9 +239,10 @@ impl<T: ColorSpace + Copy> Shader<T> for DarbouxNormalSpecularShader<T> {
                 self.varying_texture_coords[1].z - self.varying_texture_coords[1].x,
                 0.0 
             );
-            
-
-            //
+        
+            // change basis from tangent basis to global coordinates
+            let tangent_transform = Mat3::from_cols(basis_1, basis_2, tangent_normal).transpose();
+            tangent_transform.inverse() * tangent_normal
         };
         
         // get transformed light vec
