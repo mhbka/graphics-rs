@@ -243,8 +243,6 @@ impl<T: ColorSpace + Copy> Shader<T> for DarbouxNormalSpecularShader<T> {
                 0.0 
             );
 
-            println!("{basis_1:?}");
-
             // change basis from tangent basis to global coordinates
             let tangent_transform = Mat3::from_cols(basis_1, basis_2, tangent_normal).transpose();
             tangent_transform.inverse() * tangent_normal
