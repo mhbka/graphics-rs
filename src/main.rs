@@ -35,25 +35,21 @@ fn main() {
         specular_image
     };
 
-    // instantiate for gouraud shader
-    let mut image: Image<RGB> = Image::new(width, height);
-    let mut zbuffer = vec![f32::MIN; image.width * image.height];
-
-    // gouraud shader w/ texture
+    // gouraud shader w/ texture (starts at 2 cuz i deleted the first one lol)
     let mut image2: Image<RGB> = Image::new(width, height);
-    let mut zbuffer2 = zbuffer.clone();
+    let mut zbuffer2 = vec![f32::MIN; image2.width * image2.height];
 
     // normal-mapped shader w/ texture
     let mut image3: Image<RGB> = Image::new(width, height);
-    let mut zbuffer3 = zbuffer.clone();
+    let mut zbuffer3 = zbuffer2.clone();
 
     // normal-mapped shader w/ texture and specular mapping
     let mut image4: Image<RGB> = Image::new(width, height);
-    let mut zbuffer4 = zbuffer.clone();
+    let mut zbuffer4 = zbuffer2.clone();
 
     // darboux shader
     let mut image5: Image<RGB> = Image::new(width, height);
-    let mut zbuffer5 = zbuffer.clone();
+    let mut zbuffer5 = zbuffer2.clone();
 
     // instantiate shaders
     let mut texture_shader = GouraudShader::new(model.clone(), transform.clone());
@@ -97,14 +93,12 @@ fn main() {
     let time_taken = now.elapsed();
     // end of timed block //
     
-    add_axis_lines(&mut image, transform.get_whole_transform());
     add_axis_lines(&mut image2, transform.get_whole_transform());
     add_axis_lines(&mut image3, transform.get_whole_transform());
     add_axis_lines(&mut image4, transform.get_whole_transform());
     add_axis_lines(&mut image5, transform.get_whole_transform());
 
     println!("{:?}", time_taken);
-    image.write_tga_file("output/img.tga", true, false).unwrap();
     image2.write_tga_file("output/img2.tga", true, false).unwrap();
     image3.write_tga_file("output/img3.tga", true, false).unwrap();
     image4.write_tga_file("output/img4.tga", true, false).unwrap();

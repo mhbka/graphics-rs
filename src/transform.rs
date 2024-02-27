@@ -19,6 +19,22 @@ impl Transform {
     pub fn get_whole_transform(&self) -> Affine3A {
         self.viewport * self.projection * self.model_view
     }
+
+    pub fn viewport_transform(&self, point: Vec3) -> Vec3 {
+        self.viewport.transform_point3(point)
+    }
+
+    pub fn ndc_transform(&self, point: Vec3) -> Vec3 {
+        (self.projection * self.model_view)
+            .transform_point3(point)
+    }
+
+    pub fn ndc_inv_tr_transform(&self, point: Vec3) -> Vec3 { // typically for normals
+        Mat4::from(self.projection * self.model_view)
+            .inverse()
+            .transpose()
+            .transform_point3(point)
+    }
 }
 
 // initialize a transform
