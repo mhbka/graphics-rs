@@ -1,6 +1,6 @@
 use glam::{Vec2, Vec3};
 
-use crate::{ColorSpace, Grayscale, Image, ObjFace, RGB};
+use crate::{ColorSpace, Grayscale, Image, RGB};
 
 /// Represents a model.
 /// A model contains ObjFaces (vertices, texture coordinates, normals).
@@ -8,7 +8,6 @@ use crate::{ColorSpace, Grayscale, Image, ObjFace, RGB};
 /// There are also helper functions.
 #[derive(Clone)]
 pub struct Model<T: ColorSpace + Copy> {
-    pub obj_faces: Vec<ObjFace>,
     pub texture_image: Image<T>,
     pub normal_image: Image<RGB>,
     pub tangent_normal_image: Image<RGB>,

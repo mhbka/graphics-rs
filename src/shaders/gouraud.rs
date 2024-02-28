@@ -38,8 +38,7 @@ impl<T: ColorSpace + Copy> Shader<T> for GouraudShader<T> {
     fn fragment(&self, bary_coords: Vec3, color: &mut T) -> bool {
         *color = {
             let interpolated_coords = bary_to_point(&bary_coords, &self.varying_texture_coords);
-            let pixel_coords = self.uniform_model.texture_pixel_coords(interpolated_coords.x, interpolated_coords.y);
-            self.uniform_model.get_texture_color(pixel_coords.x as usize, pixel_coords.y as usize)
+            self.uniform_model.get_texture_color(interpolated_coords.x as usize, interpolated_coords.y as usize)
         };
         let intensity = Vec3::from_array(self.varying_intensity).dot(bary_coords);
         color.shade(intensity);

@@ -1,4 +1,4 @@
-use crate::tgaimage::*;
+use crate::{tgaimage::*, Transform};
 use crate::shaders::Shader;
 use glam::*;
 
@@ -8,8 +8,8 @@ pub fn triangle<T, S>(
     image: &mut Image<T>,
     shader: &S, 
     screen_coords: [Vec3; 3], 
-    zbuffer: &mut Vec<f32>)
-
+    zbuffer: &mut Vec<f32>
+)
 where 
     T: ColorSpace + Copy + std::fmt::Debug,
     S: Shader<T> {
