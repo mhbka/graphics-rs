@@ -30,9 +30,7 @@ impl<T: ColorSpace + Copy> Shader<T> for NormalMappedShader<T> {
                 self.uniform_model
                 .texture_pixel_coords(obj_face.texture_vertices[i].x, obj_face.texture_vertices[i].y)
                 .extend(0.0);
-            transformed_face[i] = 
-                self.uniform_transform
-                .ndc_transform(obj_face.vertices[i]);
+            transformed_face[i] = self.uniform_transform.ndc_transform(obj_face.vertices[i]);
         }
         transformed_face
     }
@@ -44,15 +42,18 @@ impl<T: ColorSpace + Copy> Shader<T> for NormalMappedShader<T> {
         
         // get the normal vec at this pixel
         let normal = {
-            let untransformed_normal = self.uniform_model.get_normal(interpolated_coords.x as usize, interpolated_coords.y as usize);
-            //println!("{interpolated_coords:?} -> {untransformed_normal:?}");
+            let untransformed_normal = self.uniform_model
+                .get_normal(interpolated_coords.x as usize, interpolated_coords.y as usize);
+
             self.uniform_transform
                 .ndc_inv_tr_transform(untransformed_normal)
                 .normalize()
         };
 
-        // transform light vector and get intensity here
-        let light = self.uniform_transform.ndc_transform(self.uniform_light_dir).normalize();
+        // transform light vector and get intensity 
+        let light = self.uniform_transform
+            .ndc_transform(self.uniform_light_dir)
+            .normalize();
         let intensity = f32::max(0.0, normal.dot(light));
 
         // shade the color

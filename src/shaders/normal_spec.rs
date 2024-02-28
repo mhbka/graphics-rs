@@ -26,8 +26,13 @@ impl<T: ColorSpace + Copy> Shader<T> for NormalSpecularShader<T> {
         self.uniform_light_dir = light_dir; 
         let mut transformed_face = obj_face.vertices.clone();
         for i in 0..3 {
-            self.varying_texture_coords[i] = obj_face.texture_vertices[i];
-            transformed_face[i] = self.uniform_transform.ndc_transform(obj_face.vertices[i]);
+            self.varying_texture_coords[i] = 
+                self.uniform_model
+                .texture_pixel_coords(obj_face.texture_vertices[i].x, obj_face.texture_vertices[i].y)
+                .extend(0.0);
+            transformed_face[i] = 
+                self.uniform_transform
+                .ndc_transform(obj_face.vertices[i]);
         }
         transformed_face
     }

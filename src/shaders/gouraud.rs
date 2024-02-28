@@ -25,13 +25,16 @@ impl<T: ColorSpace + Copy> Shader<T> for GouraudShader<T> {
     fn vertex(&mut self, obj_face: ObjFace, light_dir: Vec3) -> [Vec3; 3] {
         let mut transformed_face = obj_face.vertices.clone();
         for i in 0..3 {
-            let normal = self.uniform_transform
+            let normal = 
+                self.uniform_transform
                 .ndc_inv_tr_transform(obj_face.normals[i])
                 .normalize();
-            self.varying_texture_coords[i] = self.uniform_model
+            self.varying_texture_coords[i] = 
+                self.uniform_model
                 .texture_pixel_coords(obj_face.texture_vertices[i].x, obj_face.texture_vertices[i].y)
                 .extend(0.0);
-            transformed_face[i] = self.uniform_transform
+            transformed_face[i] = 
+                self.uniform_transform
                 .ndc_transform(obj_face.vertices[i]);
             self.varying_intensity[i] = f32::max(0.0, normal.dot(light_dir));
         }
