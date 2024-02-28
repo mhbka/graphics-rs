@@ -42,7 +42,7 @@ impl<T: ColorSpace + Copy> Shader<T> for GouraudShader<T> {
         *color = {
             let interpolated_coords = bary_to_point(&bary_coords, &self.varying_texture_coords);
             self.uniform_model.get_texture_color(interpolated_coords.x as usize, interpolated_coords.y as usize)
-        };
+        }; 
         let intensity = Vec3::from_array(self.varying_intensity).dot(bary_coords);
         color.shade(intensity);
         false

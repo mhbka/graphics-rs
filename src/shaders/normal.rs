@@ -26,10 +26,12 @@ impl<T: ColorSpace + Copy> Shader<T> for NormalMappedShader<T> {
         self.uniform_light_dir = light_dir;
         let mut transformed_face = obj_face.vertices.clone();
         for i in 0..3 {
-            self.varying_texture_coords[i] = self.uniform_model
+            self.varying_texture_coords[i] = 
+                self.uniform_model
                 .texture_pixel_coords(obj_face.texture_vertices[i].x, obj_face.texture_vertices[i].y)
                 .extend(0.0);
-            transformed_face[i] = self.uniform_transform
+            transformed_face[i] = 
+                self.uniform_transform
                 .ndc_transform(obj_face.vertices[i]);
         }
         transformed_face
@@ -54,7 +56,7 @@ impl<T: ColorSpace + Copy> Shader<T> for NormalMappedShader<T> {
         let intensity = f32::max(0.0, normal.dot(light));
 
         // shade the color
-        //*color = self.uniform_texture.get(interpolated_coords.x as usize, interpolated_coords.y as usize).unwrap();
+        *color = self.uniform_model.get_texture_color(interpolated_coords.x as usize, interpolated_coords.y as usize);
         color.shade(intensity);
         false
     }

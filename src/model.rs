@@ -21,7 +21,7 @@ impl <T: ColorSpace + Copy> Model<T> {
             panic!("x or y ({x}, {y}) is out of bounds ([0, 1])");
         }
         let pixel_x = (x * self.texture_image.width as f32).floor();
-        let pixel_y = (x * self.texture_image.height as f32).floor();
+        let pixel_y = (self.texture_image.height as f32 - (y * self.texture_image.height as f32)).floor();
         Vec2::new(pixel_x, pixel_y)
     }
 
@@ -30,7 +30,7 @@ impl <T: ColorSpace + Copy> Model<T> {
             panic!("x or y ({x}, {y}) is out of bounds ([0, 1])");
         }
         let pixel_x = (x * self.normal_image.width as f32).floor();
-        let pixel_y = (x * self.normal_image.height as f32).floor();
+        let pixel_y = (y * self.normal_image.height as f32).floor(); //NOTE: may have to vertically flip, like above
         Vec2::new(pixel_x, pixel_y)
     }
 
@@ -39,7 +39,7 @@ impl <T: ColorSpace + Copy> Model<T> {
             panic!("x or y ({x}, {y}) is out of bounds ([0, 1])");
         }
         let pixel_x = (x * self.tangent_normal_image.width as f32).floor();
-        let pixel_y = (x * self.tangent_normal_image.height as f32).floor();
+        let pixel_y = (y * self.tangent_normal_image.height as f32).floor();
         Vec2::new(pixel_x, pixel_y)
     }
 
@@ -48,7 +48,7 @@ impl <T: ColorSpace + Copy> Model<T> {
             panic!("x or y ({x}, {y}) is out of bounds ([0, 1])");
         }
         let pixel_x = (x * self.specular_image.width as f32).floor();
-        let pixel_y = (x * self.specular_image.height as f32).floor();
+        let pixel_y = (y * self.specular_image.height as f32).floor();
         Vec2::new(pixel_x, pixel_y)
     }
 }
