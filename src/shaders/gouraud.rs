@@ -26,11 +26,14 @@ impl<T: ColorSpace + Copy> Shader<T> for GouraudShader<T> {
         let mut transformed_face = obj_face.vertices.clone();
         for i in 0..3 {
             let normal = self.uniform_transform
-                            .ndc_inv_tr_transform(obj_face.normals[i])
-                            .normalize();
+                .ndc_inv_tr_transform(obj_face.normals[i])
+                .normalize();
+            self.varying_texture_coords[i] = self.uniform_model
+                .texture_pixel_coords(obj_face.texture_vertices[i].x, obj_face.texture_vertices[i].y)
+                .extend(0.0);
+            transformed_face[i] = self.uniform_transform
+                .ndc_transform(obj_face.vertices[i]);
             self.varying_intensity[i] = f32::max(0.0, normal.dot(light_dir));
-            self.varying_texture_coords[i] = obj_face.texture_vertices[i];
-            transformed_face[i] = self.uniform_transform.ndc_transform(obj_face.vertices[i]);
         }
         transformed_face
     }

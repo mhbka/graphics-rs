@@ -64,22 +64,20 @@ fn main() {
         let light_dir = Vec3::new(1.0, 1.0, 3.0).normalize();
         
         let ndc = Shader::<RGB>::vertex(&mut texture_shader, obj_face.clone(), light_dir);
-        let screen_coords3 = Shader::<RGB>::vertex(&mut normal_mapped_shader, obj_face.clone(), light_dir);
-        let screen_coords4 = Shader::<RGB>::vertex(&mut normal_specular_shader, obj_face.clone(), light_dir);
-        let screen_coords5 = Shader::<RGB>::vertex(&mut tangent_normal_shader, obj_face.clone(), light_dir);
+        let ndc2 = Shader::<RGB>::vertex(&mut normal_mapped_shader, obj_face.clone(), light_dir);
+        let ndc3 = Shader::<RGB>::vertex(&mut normal_specular_shader, obj_face.clone(), light_dir);
+        let ndc4 = Shader::<RGB>::vertex(&mut tangent_normal_shader, obj_face.clone(), light_dir);
 
-        /*
-        assert_eq!(screen_coords2, screen_coords3);
-        assert_eq!(screen_coords3, screen_coords4);
-        assert_eq!(screen_coords4, screen_coords5);
-         */
+        assert_eq!(ndc, ndc2);
+        assert_eq!(ndc2, ndc3);
+        //assert_eq!(ndc3, ndc4);
 
         let screen_coords = ndc.map(|v| transform.viewport_transform(v));
 
         triangle(&mut gouraud_img, &texture_shader, screen_coords,  &mut zbuffer);
-        triangle(&mut normal_map_img, &normal_mapped_shader, screen_coords3,  &mut zbuffer2);
-        triangle(&mut normal_spec_img, &normal_specular_shader, screen_coords4,  &mut zbuffer3);
-        triangle(&mut tangent_normal_img, &tangent_normal_shader, screen_coords5,  &mut zbuffer4);
+        triangle(&mut normal_map_img, &normal_mapped_shader, screen_coords,  &mut zbuffer2);
+        triangle(&mut normal_spec_img, &normal_specular_shader, screen_coords,  &mut zbuffer3);
+        triangle(&mut tangent_normal_img, &tangent_normal_shader, screen_coords,  &mut zbuffer4);
     }
 
     let time_taken = now.elapsed();

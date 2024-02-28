@@ -20,8 +20,8 @@ impl <T: ColorSpace + Copy> Model<T> {
         if x>1.0 || x<0.0 || y>1.0 || y<0.0 {
             panic!("x or y ({x}, {y}) is out of bounds ([0, 1])");
         }
-        let pixel_x = (x * self.texture_image.height as f32).floor();
-        let pixel_y = (x * self.texture_image.width as f32).floor();
+        let pixel_x = (x * self.texture_image.width as f32).floor();
+        let pixel_y = (x * self.texture_image.height as f32).floor();
         Vec2::new(pixel_x, pixel_y)
     }
 
@@ -29,8 +29,8 @@ impl <T: ColorSpace + Copy> Model<T> {
         if x>1.0 || x<0.0 || y>1.0 || y<0.0 {
             panic!("x or y ({x}, {y}) is out of bounds ([0, 1])");
         }
-        let pixel_x = (x * self.normal_image.height as f32).floor();
-        let pixel_y = (x * self.normal_image.width as f32).floor();
+        let pixel_x = (x * self.normal_image.width as f32).floor();
+        let pixel_y = (x * self.normal_image.height as f32).floor();
         Vec2::new(pixel_x, pixel_y)
     }
 
@@ -38,8 +38,8 @@ impl <T: ColorSpace + Copy> Model<T> {
         if x>1.0 || x<0.0 || y>1.0 || y<0.0 {
             panic!("x or y ({x}, {y}) is out of bounds ([0, 1])");
         }
-        let pixel_x = (x * self.tangent_normal_image.height as f32).floor();
-        let pixel_y = (x * self.tangent_normal_image.width as f32).floor();
+        let pixel_x = (x * self.tangent_normal_image.width as f32).floor();
+        let pixel_y = (x * self.tangent_normal_image.height as f32).floor();
         Vec2::new(pixel_x, pixel_y)
     }
 
@@ -47,8 +47,8 @@ impl <T: ColorSpace + Copy> Model<T> {
         if x>1.0 || x<0.0 || y>1.0 || y<0.0 {
             panic!("x or y ({x}, {y}) is out of bounds ([0, 1])");
         }
-        let pixel_x = (x * self.specular_image.height as f32).floor();
-        let pixel_y = (x * self.specular_image.width as f32).floor();
+        let pixel_x = (x * self.specular_image.width as f32).floor();
+        let pixel_y = (x * self.specular_image.height as f32).floor();
         Vec2::new(pixel_x, pixel_y)
     }
 }
