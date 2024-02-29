@@ -81,6 +81,6 @@ impl <T: ColorSpace + Copy> Model<T> {
         self.specular_image
             .get(x, y)
             .unwrap()
-            .i as f32 / 255.0
+            .i as f32
     }
 }
