@@ -1,3 +1,5 @@
+use std::iter;
+
 use crate::{rasterizer::bary_to_point, ColorSpace, Model, ObjFace, Shader, Transform};
 use glam::*;
 
@@ -61,10 +63,7 @@ impl<T: ColorSpace + Copy> Shader<T> for TangentNormalShader<T> {
                 self.varying_ndc[1] - self.varying_ndc[0],
                 self.varying_ndc[2] - self.varying_ndc[0],
                 interpolated_normal
-            );
-
-            println!("{interpolated_normal}");
-            
+            );            
 
             /* 
             let ndc_tri = Mat3::from_cols(self.varying_ndc[0], self.varying_ndc[1], self.varying_ndc[2]);
