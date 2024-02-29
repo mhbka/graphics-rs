@@ -36,7 +36,6 @@ impl<T: ColorSpace + Copy> Shader<T> for NormalMappedShader<T> {
     }
 
     fn fragment(&self, bary_coords: Vec3, color: &mut T) -> bool {
-
         // compute actual pixel coordinate for texture + normal image
         let interpolated_coords = bary_to_point(&bary_coords, &self.varying_texture_coords);
         
@@ -49,6 +48,7 @@ impl<T: ColorSpace + Copy> Shader<T> for NormalMappedShader<T> {
                 .ndc_inv_tr_transform(untransformed_normal)
                 .normalize()
         };
+        //println!("{bary_coords:?}   ->   {normal}");
 
         // transform light vector into ndc
         let light = self.uniform_transform

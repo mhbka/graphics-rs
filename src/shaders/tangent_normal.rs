@@ -56,11 +56,26 @@ impl<T: ColorSpace + Copy> Shader<T> for TangentNormalShader<T> {
             let interpolated_normal = bary_to_point(&bary_coords, &self.varying_normals).normalize();
 
             // compute darboux transform + 2 vectors that form tangent basis
+            /**/
             let darboux_transform = Mat3::from_cols(
                 self.varying_ndc[1] - self.varying_ndc[0],
                 self.varying_ndc[2] - self.varying_ndc[0],
                 interpolated_normal
             );
+
+            println!("{interpolated_normal}");
+            
+
+            /* 
+            let ndc_tri = Mat3::from_cols(self.varying_ndc[0], self.varying_ndc[1], self.varying_ndc[2]);
+            let darboux_transform = Mat3::from_cols(
+                ndc_tri.row(1) - ndc_tri.row(0),
+                ndc_tri.row(2) - ndc_tri.row(0),
+                interpolated_normal
+            );
+            */
+             
+            /* */
             let basis_1 = darboux_transform.inverse() * Vec3::new(
                 self.varying_uv[0].y - self.varying_uv[0].x,
                 self.varying_uv[0].z - self.varying_uv[0].x,
@@ -71,16 +86,32 @@ impl<T: ColorSpace + Copy> Shader<T> for TangentNormalShader<T> {
                 self.varying_uv[1].z - self.varying_uv[1].x,
                 0.0 
             );
+            
+
+            /* 
+            let basis_1 = darboux_transform.inverse() * Vec3::new(
+                self.varying_uv[1].x - self.varying_uv[0].x,
+                self.varying_uv[2].x - self.varying_uv[0].x,
+                0.0 
+            );
+            let basis_2 = darboux_transform.inverse() * Vec3::new(
+                self.varying_uv[1].y - self.varying_uv[0].y,
+                self.varying_uv[2].y - self.varying_uv[0].y,
+                0.0 
+            );
+            */
+            
 
             // change basis from tangent basis to global coordinates
             let tangent_transform = Mat3::from_cols(
                 basis_1.normalize(), 
                 basis_2.normalize(), 
-                tangent_normal
+                interpolated_normal
                 );
 
             (tangent_transform * tangent_normal).normalize()
         };
+        //println!("{bary_coords:?}   ->   {normal}");
         
         // transform light vector into ndc
         let light = self.uniform_transform
