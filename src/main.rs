@@ -14,10 +14,12 @@ use crate::transform::*;
 use crate::rasterizer::triangle;
 use crate::model::*;
 use glam::*;
-use std::time;
+use std::{env, time};
 
 
 fn main() {
+    env::set_var("RUST_BACKTRACE", "1");
+
     // instantiate common things
     let (height, width) = (1024, 1024);
     

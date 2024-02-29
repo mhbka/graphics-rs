@@ -50,14 +50,14 @@ impl<T: ColorSpace + Copy> Shader<T> for NormalMappedShader<T> {
                 .normalize()
         };
 
-        // transform light vector and get intensity 
+        // transform light vector into ndc
         let light = self.uniform_transform
             .ndc_transform(self.uniform_light_dir)
             .normalize();
-        let intensity = f32::max(0.0, normal.dot(light));
 
         // shade the color
-        *color = self.uniform_model.get_texture_color(interpolated_coords.x as usize, interpolated_coords.y as usize);
+        let intensity = f32::max(0.0, normal.dot(light));
+        //*color = self.uniform_model.get_texture_color(interpolated_coords.x as usize, interpolated_coords.y as usize);
         color.shade(intensity);
         false
     }
