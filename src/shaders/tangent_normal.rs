@@ -28,27 +28,19 @@ impl<T: ColorSpace + Copy> Shader<T> for TangentNormalShader<T> {
     fn vertex(&mut self, obj_face: ObjFace, light_dir: Vec3) -> [Vec3; 3] {
         self.uniform_light_dir = light_dir; 
         self.varying_texture_coords = obj_face.texture_vertices;
-        let mut transformed_face = obj_face.vertices.clone();
         for i in 0..3 {
-            self.varying_ndc[i] = (self.uniform_transform.projection * self.uniform_transform.model_view)
-                                    .transform_point3(obj_face.vertices[i]);
-            self.varying_normals[i] = Mat4::from(self.uniform_transform.projection * self.uniform_transform.model_view)
-                                    .inverse()
-                                    .transpose()
-                                    .transform_point3(obj_face.normals[i]);
-            transformed_face[i] = self.uniform_transform
-                                   .get_whole_transform()
-                                    .transform_point3(obj_face.vertices[i]);
+            self.varying_texture_coords[i] = self.uniform_model
+                .texture_pixel_coords(obj_face.texture_vertices[i].x, obj_face.texture_vertices[i].y)
+                .extend(0.0);
+            self.varying_normals[i] = self.uniform_transform
+                .ndc_inv_tr_transform(obj_face.normals[i]);
+            self.varying_ndc[i] = self.uniform_transform
+                .ndc_transform(obj_face.vertices[i]);
             };
-
-        transformed_face
+        self.varying_ndc
     } 
 
     fn fragment(&self, bary_coords: Vec3, color: &mut T) -> bool {
-        // set M and MIT
-        let transform = self.uniform_transform.projection * self.uniform_transform.model_view;
-        let transform_inv_tr = Mat4::from(transform).inverse().transpose();
-
         // compute actual coords for corresponding pixel in texture + specular + normal images 
         let interpolated_coords = bary_to_point(&bary_coords, &self.varying_texture_coords);
 
@@ -82,16 +74,20 @@ impl<T: ColorSpace + Copy> Shader<T> for TangentNormalShader<T> {
             let tangent_transform = Mat3::from_cols(basis_1.normalize(), basis_2.normalize(), tangent_normal).transpose();
             let n = tangent_transform * tangent_normal;
 
-            transform_inv_tr.transform_point3(n).normalize()
+            self.uniform_transform
+                .ndc_inv_tr_transform(n)
+                .normalize()
         };
         
         // get transformed light vec
-        let light = transform.transform_point3(self.uniform_light_dir).normalize();
+        let light = self.uniform_transform
+            .ndc_transform(self.uniform_light_dir)
+            .normalize();
 
         // diffuse light - normal lighting
         let intensity = normal.dot(light).max(0.0);
 
-        //*color = self.uniform_texture.get(interpolated_coords.x as usize, interpolated_coords.y as usize).unwrap();
+        *color = self.uniform_model.get_texture_color(interpolated_coords.x as usize, interpolated_coords.y as usize);
         color.shade(intensity);
         false
     }

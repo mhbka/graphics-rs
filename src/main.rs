@@ -61,7 +61,7 @@ fn main() {
     let now = time::Instant::now();
 
     for obj_face in obj_faces {
-        let light_dir = Vec3::new(1.0, 1.0, 3.0).normalize();
+        let light_dir = Vec3::new(0.0, 0.0, 3.0).normalize();
         
         let ndc = Shader::<RGB>::vertex(&mut texture_shader, obj_face.clone(), light_dir);
         let ndc2 = Shader::<RGB>::vertex(&mut normal_mapped_shader, obj_face.clone(), light_dir);
@@ -70,7 +70,7 @@ fn main() {
 
         assert_eq!(ndc, ndc2);
         assert_eq!(ndc2, ndc3);
-        //assert_eq!(ndc3, ndc4);
+        assert_eq!(ndc3, ndc4);
 
         let screen_coords = ndc.map(|v| transform.viewport_transform(v));
 
