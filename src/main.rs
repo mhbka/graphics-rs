@@ -24,7 +24,7 @@ fn main() {
     let (height, width) = (1024, 1024);
     
     let obj_faces = parse_obj("assets/african_head.obj");
-    let texture_image: Image<RGB> = convert_from_tinytga("assets/african_head_texture.tga");
+    let texture_image: Image<RGB> = convert_from_tinytga("assets/grid.tga");
     let normal_image: Image<RGB> = convert_from_tinytga("assets/african_head_nm.tga");
     let tangent_normal_image: Image<RGB> = convert_from_tinytga("assets/african_head_nm_tangent.tga");
     let specular_image: Image<Grayscale> = convert_from_tinytga("assets/african_head_spec.tga");

@@ -39,7 +39,7 @@ impl <T: ColorSpace + Copy> Model<T> {
             panic!("x or y ({x}, {y}) is out of bounds ([0, 1])");
         }
         let pixel_x = (x * self.tangent_normal_image.width as f32).floor();
-        let pixel_y = (self.texture_image.height as f32 - (y * self.texture_image.height as f32)).floor();
+        let pixel_y = (self.tangent_normal_image.height as f32 - (y * self.tangent_normal_image.height as f32)).floor();
         Vec2::new(pixel_x, pixel_y)
     }
 
