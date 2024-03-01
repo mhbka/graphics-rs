@@ -22,7 +22,7 @@ fn main() {
     let obj_name = "diablo3_pose";
 
     // instantiate common things
-    let (height, width) = (1024, 1024);
+    let (height, width) = (2048, 2048);
     let eye = Vec3::new(3.0, 3.0, 9.0);
     let centre = Vec3::ZERO;
     let up = Vec3::Y;
