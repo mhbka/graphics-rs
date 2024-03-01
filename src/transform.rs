@@ -37,12 +37,10 @@ impl Transform {
     }
 }
 
-// initialize a transform
-pub fn initialize_transform(height: usize, width: usize) -> Transform {
-    let eye = Vec3::new(1.0, 1.0, 3.0);
-    let centre = Vec3::new(0.0, 0.0, 0.0);
-    let up = Vec3::new(0.0, 1.0, 0.0);
-
+// initialize a transform.
+// the "camera" is positioned at `eye` and points to `centre`, vertically aligned to `up`, a normal vector.
+// the final image's pixels is constrained to the bounds of `height` and `width`
+pub fn initialize_transform(height: usize, width: usize, eye: Vec3, centre: Vec3, up: Vec3) -> Transform {
     let model_view = lookat(eye, centre, up);
     let projection = Affine3A::IDENTITY;
     let viewport = viewport(width/8, height/8, width*3/4, height*3/4);
