@@ -4,6 +4,7 @@ mod obj;
 mod rasterizer;
 mod shaders;
 mod transform;
+mod model;
 
 use crate::line::add_axis_lines;
 use crate::shaders::*;
@@ -11,96 +12,89 @@ use crate::tgaimage::*;
 use crate::obj::*;
 use crate::transform::*;
 use crate::rasterizer::triangle;
+use crate::model::*;
 use glam::*;
-use std::time;
+use std::{env, time};
 
 
 fn main() {
+    env::set_var("RUST_BACKTRACE", "1");
 
     // instantiate common things
     let (height, width) = (1024, 1024);
+    
     let obj_faces = parse_obj("assets/african_head.obj");
-    let texture_image: Image<RGB> = convert_from_tinytga("assets/african_head_texture.tga");
+    let texture_image: Image<RGB> = convert_from_tinytga("assets/grid.tga");
     let normal_image: Image<RGB> = convert_from_tinytga("assets/african_head_nm.tga");
-    let darboux_normal_image: Image<RGB> = convert_from_tinytga("assets/african_head_nm_tangent.tga");
+    let tangent_normal_image: Image<RGB> = convert_from_tinytga("assets/african_head_nm_tangent.tga");
     let specular_image: Image<Grayscale> = convert_from_tinytga("assets/african_head_spec.tga");
     let transform = initialize_transform(height, width);
 
-    // instantiate for gouraud shader
-    let mut image: Image<RGB> = Image::new(width, height);
-    let mut zbuffer = vec![f32::MIN; image.width * image.height];
+    let model = Model {
+        texture_image,
+        normal_image,
+        tangent_normal_image,
+        specular_image
+    };
 
-    // gouraud shader w/ texture
-    let mut image2: Image<RGB> = Image::new(width, height);
-    let mut zbuffer2 = zbuffer.clone();
+    // gouraud shader w/ texture (starts at 2 cuz i deleted the first one lol)
+    let mut gouraud_img: Image<RGB> = Image::new(width, height);
+    let mut zbuffer = vec![f32::MIN; width * height];
 
     // normal-mapped shader w/ texture
-    let mut image3: Image<RGB> = Image::new(width, height);
-    let mut zbuffer3 = zbuffer.clone();
+    let mut normal_map_img: Image<RGB> = Image::new(width, height);
+    let mut zbuffer2 = zbuffer.clone();
 
     // normal-mapped shader w/ texture and specular mapping
-    let mut image4: Image<RGB> = Image::new(width, height);
-    let mut zbuffer4 = zbuffer.clone();
+    let mut normal_spec_img: Image<RGB> = Image::new(width, height);
+    let mut zbuffer3 = zbuffer.clone();
 
     // darboux shader
-    let mut image5: Image<RGB> = Image::new(width, height);
-    let mut zbuffer5 = zbuffer.clone();
+    let mut tangent_normal_img: Image<RGB> = Image::new(width, height);
+    let mut zbuffer4 = zbuffer.clone();
 
     // instantiate shaders
-    let mut shader = GouraudShader::new(transform.clone());
-    let mut texture_shader = GouraudTextureShader::new(texture_image.clone(), transform.clone());
-    let mut normal_mapped_shader = NormalMappedShader::new(texture_image.clone(), normal_image.clone(), transform.clone());
-    let mut normal_specular_shader = NormalSpecularShader::new(texture_image.clone(), normal_image.clone(), specular_image.clone(), transform.clone());
-    let mut darboux_specular_shader = DarbouxNormalSpecularShader::new(texture_image.clone(), darboux_normal_image.clone(), specular_image.clone(), transform.clone());
+    let mut texture_shader = GouraudShader::new(model.clone(), transform.clone());
+    let mut normal_mapped_shader = NormalMappedShader::new(model.clone(), transform.clone());
+    let mut normal_specular_shader = NormalSpecularShader::new(model.clone(), transform.clone());
+    let mut tangent_normal_shader = TangentNormalShader::new(model.clone(), transform.clone());
 
     // timed block //
     let now = time::Instant::now();
 
-    for mut obj_face in obj_faces {
-        // map texture coords into texture pixels
-        obj_face.texture_vertices = obj_face.texture_vertices.map(|v| {
-            Vec3::new(
-                v.x * texture_image.width as f32,
-                texture_image.height as f32 - v.y * texture_image.height as f32,
-                0.0
-            ).floor() 
-        });
+    for obj_face in obj_faces {
+        let light_dir = Vec3::new(0.0, 0.0, 3.0).normalize();
         
-        let light_dir = Vec3::new(-1.0, -1.0, 3.0).normalize();
-        
-        let screen_coords = Shader::<RGB>::vertex(&mut shader, obj_face.clone(), light_dir);
-        let screen_coords2 = Shader::<RGB>::vertex(&mut texture_shader, obj_face.clone(), light_dir);
-        let screen_coords3 = Shader::<RGB>::vertex(&mut normal_mapped_shader, obj_face.clone(), light_dir);
-        let screen_coords4 = Shader::<RGB>::vertex(&mut normal_specular_shader, obj_face.clone(), light_dir);
-        let screen_coords5 = Shader::<RGB>::vertex(&mut darboux_specular_shader, obj_face.clone(), light_dir);
+        let ndc = Shader::<RGB>::vertex(&mut texture_shader, obj_face.clone(), light_dir);
+        let ndc2 = Shader::<RGB>::vertex(&mut normal_mapped_shader, obj_face.clone(), light_dir);
+        let ndc3 = Shader::<RGB>::vertex(&mut normal_specular_shader, obj_face.clone(), light_dir);
+        let ndc4 = Shader::<RGB>::vertex(&mut tangent_normal_shader, obj_face.clone(), light_dir);
 
-        assert_eq!(screen_coords, screen_coords2);
-        assert_eq!(screen_coords2, screen_coords3);
-        assert_eq!(screen_coords3, screen_coords4);
-        assert_eq!(screen_coords4, screen_coords5);
+        assert_eq!(ndc, ndc2);
+        assert_eq!(ndc2, ndc3);
+        assert_eq!(ndc3, ndc4);
 
-        triangle(&mut image, &shader, screen_coords, &mut zbuffer);
-        triangle(&mut image2, &texture_shader, screen_coords2,  &mut zbuffer2);
-        triangle(&mut image3, &normal_mapped_shader, screen_coords3,  &mut zbuffer3);
-        triangle(&mut image4, &normal_specular_shader, screen_coords4,  &mut zbuffer4);
-        triangle(&mut image5, &darboux_specular_shader, screen_coords5,  &mut zbuffer5);
+        let screen_coords = ndc.map(|v| transform.viewport_transform(v));
+
+        triangle(&mut gouraud_img, &texture_shader, screen_coords,  &mut zbuffer);
+        triangle(&mut normal_map_img, &normal_mapped_shader, screen_coords,  &mut zbuffer2);
+        triangle(&mut normal_spec_img, &normal_specular_shader, screen_coords,  &mut zbuffer3);
+        triangle(&mut tangent_normal_img, &tangent_normal_shader, screen_coords,  &mut zbuffer4);
     }
 
     let time_taken = now.elapsed();
     // end of timed block //
     
-    add_axis_lines(&mut image, transform.get_whole_transform());
-    add_axis_lines(&mut image2, transform.get_whole_transform());
-    add_axis_lines(&mut image3, transform.get_whole_transform());
-    add_axis_lines(&mut image4, transform.get_whole_transform());
-    add_axis_lines(&mut image5, transform.get_whole_transform());
+    add_axis_lines(&mut gouraud_img, transform.get_whole_transform());
+    add_axis_lines(&mut normal_map_img, transform.get_whole_transform());
+    add_axis_lines(&mut normal_spec_img, transform.get_whole_transform());
+    add_axis_lines(&mut tangent_normal_img, transform.get_whole_transform());
 
     println!("{:?}", time_taken);
-    image.write_tga_file("output/img.tga", true, false).unwrap();
-    image2.write_tga_file("output/img2.tga", true, false).unwrap();
-    image3.write_tga_file("output/img3.tga", true, false).unwrap();
-    image4.write_tga_file("output/img4.tga", true, false).unwrap();
-    image5.write_tga_file("output/img5.tga", true, false).unwrap();
+    gouraud_img.write_tga_file("output/gouraud.tga", true, false).unwrap();
+    normal_map_img.write_tga_file("output/normal_map.tga", true, false).unwrap();
+    normal_spec_img.write_tga_file("output/normal_spec.tga", true, false).unwrap();
+    tangent_normal_img.write_tga_file("output/tang_normal_map.tga", true, false).unwrap();
 }
 
 
