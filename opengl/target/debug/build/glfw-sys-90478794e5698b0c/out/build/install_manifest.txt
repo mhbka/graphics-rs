@@ -1,8 +1,0 @@
-C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/debug/build/glfw-sys-90478794e5698b0c/out/lib/glfw3.lib
-C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/debug/build/glfw-sys-90478794e5698b0c/out/include/GLFW/glfw3.h
-C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/debug/build/glfw-sys-90478794e5698b0c/out/include/GLFW/glfw3native.h
-C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/debug/build/glfw-sys-90478794e5698b0c/out/lib/cmake/glfw3/glfw3Config.cmake
-C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/debug/build/glfw-sys-90478794e5698b0c/out/lib/cmake/glfw3/glfw3ConfigVersion.cmake
-C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/debug/build/glfw-sys-90478794e5698b0c/out/lib/cmake/glfw3/glfw3Targets.cmake
-C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/debug/build/glfw-sys-90478794e5698b0c/out/lib/cmake/glfw3/glfw3Targets-debug.cmake
-C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/debug/build/glfw-sys-90478794e5698b0c/out/lib/pkgconfig/glfw3.pc

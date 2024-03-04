@@ -1,7 +1,0 @@
-C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/debug/build/glfw-sys-90478794e5698b0c/out/build/CMakeFiles/uninstall.dir
-C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/debug/build/glfw-sys-90478794e5698b0c/out/build/CMakeFiles/INSTALL.dir
-C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/debug/build/glfw-sys-90478794e5698b0c/out/build/CMakeFiles/ALL_BUILD.dir
-C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/debug/build/glfw-sys-90478794e5698b0c/out/build/CMakeFiles/ZERO_CHECK.dir
-C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/debug/build/glfw-sys-90478794e5698b0c/out/build/src/CMakeFiles/update_mappings.dir
-C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/debug/build/glfw-sys-90478794e5698b0c/out/build/src/CMakeFiles/glfw.dir
-C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/debug/build/glfw-sys-90478794e5698b0c/out/build/src/CMakeFiles/INSTALL.dir
