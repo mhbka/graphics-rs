@@ -19,14 +19,15 @@ use std::{env, time};
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
-    let obj_name = "african_head";
+
+    let obj_name = "diablo3_pose";
 
     // instantiate common things
     let (height, width) = (1024, 1024);
-    let eye = Vec3::new(3.0, 3.0, 9.0);
+    let eye = Vec3::new(1.0, 1.0, 4.0);
     let centre = Vec3::ZERO;
     let up = Vec3::Y;
-    let light_source = Vec3::new(3.0, 3.0, 1.0);
+    let light_source = Vec3::new(1.0, 1.0, 0.0);
     
     let obj_faces = parse_obj(&format!("assets/{obj_name}/{obj_name}.obj"));
     let texture_image: Image<RGB> = convert_from_tinytga(&format!("assets/{obj_name}/{obj_name}_diffuse.tga"));

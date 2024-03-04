@@ -99,7 +99,7 @@ impl<T: ColorSpace + Copy> Shader<T> for ShadowShader<T> {
         let sb_idx = (sb_coords.x + sb_coords.y*self.uniform_model.normal_image.width as f32) as usize;   
 
         // if current point z-value is less than shadowbuffer z-value, reduce brightness (ie create shadow)
-        let magic_value = 43.34; //change to 43.34
+        let magic_value = 43.34; 
         let shadow = 0.3 + 0.7 * f32::from(self.uniform_shadowbuffer[sb_idx] < (sb_coords.z+magic_value));
 
         // compute actual coords for corresponding pixel in texture + specular + normal images 
@@ -127,8 +127,8 @@ impl<T: ColorSpace + Copy> Shader<T> for ShadowShader<T> {
         // use weighted ambient + diffuse + specular light to modify each color
         let ambient_w = 5.0;
         let diffuse_w = 1.0;
-        let spec_w = 0.6;
-        //*color = self.uniform_model.get_texture_color(interpolated_coords.x as usize, interpolated_coords.y as usize);
+        let spec_w = 0.0;
+        *color = self.uniform_model.get_texture_color(interpolated_coords.x as usize, interpolated_coords.y as usize);
         let mut color_vec = color.to_vec();
         for c in &mut color_vec {
             *c = f32::min(ambient_w + (*c as f32) * shadow * (diffuse_w*diffuse_light + spec_w*specular_light), 255.0) as u8;
