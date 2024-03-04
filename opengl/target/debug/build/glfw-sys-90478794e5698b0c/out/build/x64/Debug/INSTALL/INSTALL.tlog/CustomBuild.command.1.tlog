@@ -1,0 +1,10 @@
+^C:\USERS\KHAIMH\SOURCE\VSC\GRAPHICS-RS\OPENGL\TARGET\DEBUG\BUILD\GLFW-SYS-90478794E5698B0C\OUT\BUILD\CMAKEFILES\E6F5B714B0EB678FB03DBAE598B0A53E\INSTALL_FORCE.RULE
+setlocal
+cd .
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

@@ -1,0 +1,8 @@
+C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/release/build/glfw-sys-abe100e32af0d698/out/lib/glfw3.lib
+C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/release/build/glfw-sys-abe100e32af0d698/out/include/GLFW/glfw3.h
+C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/release/build/glfw-sys-abe100e32af0d698/out/include/GLFW/glfw3native.h
+C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/release/build/glfw-sys-abe100e32af0d698/out/lib/cmake/glfw3/glfw3Config.cmake
+C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/release/build/glfw-sys-abe100e32af0d698/out/lib/cmake/glfw3/glfw3ConfigVersion.cmake
+C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/release/build/glfw-sys-abe100e32af0d698/out/lib/cmake/glfw3/glfw3Targets.cmake
+C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/release/build/glfw-sys-abe100e32af0d698/out/lib/cmake/glfw3/glfw3Targets-release.cmake
+C:/Users/khaimh/source/vsc/graphics-rs/opengl/target/release/build/glfw-sys-abe100e32af0d698/out/lib/pkgconfig/glfw3.pc
