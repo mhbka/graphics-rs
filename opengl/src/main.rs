@@ -1,10 +1,9 @@
-extern crate glfw;
-
 use glfw::{Action, Context, Key};
+use glfw::fail_on_errors;
+use gl::types::*;
 
 fn main() {
-   use glfw::fail_on_errors;
-let mut glfw = glfw::init(fail_on_errors!()).unwrap();
+    let mut glfw = glfw::init(fail_on_errors!()).unwrap();
 
     // Create a windowed mode window and its OpenGL context
     let (mut window, events) = glfw.create_window(300, 300, "Hello this is window", glfw::WindowMode::Windowed)
@@ -13,6 +12,8 @@ let mut glfw = glfw::init(fail_on_errors!()).unwrap();
     // Make the window's context current
     window.make_current();
     window.set_key_polling(true);
+
+    gl::load_with(|s| window.get_proc_address(s));
 
     // Loop until the user closes the window
     while !window.should_close() {
