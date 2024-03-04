@@ -1,5 +1,6 @@
-use crate::{tgaimage::*, Transform};
+use crate::tgaimage::*;
 use crate::shaders::Shader;
+use std::fmt::Debug;
 use glam::*;
 
 
@@ -11,7 +12,7 @@ pub fn triangle<T, S>(
     zbuffer: &mut Vec<f32>
 )
 where 
-    T: ColorSpace + Copy + std::fmt::Debug,
+    T: ColorSpace + Copy + Debug,
     S: Shader<T> {
 
     // shrink bounding box to rasterize over
@@ -27,15 +28,15 @@ where
         bboxmax.y = f32::min(clamp.y, f32::max(bboxmax.y, vertex.y)) as f32;
     } 
 
-    // loop over bounding box pixels for valid baryometric + depth buffer check
+    // loop over pixels within the bounding box 
     for p_x in bboxmin.x as i32 .. bboxmax.x as i32 + 1 {
         for p_y in bboxmin.y as i32 .. bboxmax.y as i32 + 1 {
             let bc_screen = barycentric(&screen_coords, &Vec3::new(p_x as f32, p_y as f32, 0.0));
-            if bc_screen.x < 0.0 || bc_screen.y < 0.0 || bc_screen.z < 0.0 {
+            if bc_screen.x < 0.0 || bc_screen.y < 0.0 || bc_screen.z < 0.0 { // check for valid baryometric coords
                 continue;
                 }
 
-            // depth buffer check for z-value
+            // check if current z-value is greater than last one (ie closer to "camera")
             let p_z = screen_coords[0].z * bc_screen.x
                         + screen_coords[1].z * bc_screen.y
                         + screen_coords[2].z * bc_screen.z;

@@ -10,7 +10,7 @@ pub use gouraud::GouraudShader;
 pub use normal::NormalMappedShader;
 pub use normal_spec::NormalSpecularShader;
 pub use tangent_normal::TangentNormalShader;
-pub use shadow::DepthShader;
+pub use shadow::{DepthShader, ShadowShader};
 
 
 

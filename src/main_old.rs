@@ -19,7 +19,7 @@ use std::{env, time};
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
-    let obj_name = "african_head";
+    let obj_name = "diablo3_pose";
 
     // instantiate common things
     let (height, width) = (1024, 1024);
@@ -50,32 +50,60 @@ fn main() {
         specular_image
     };
 
-    // shadow shader (including depth shader)
-    let mut depth_img: Image<RGB> = Image::new(width, height);
-    let mut shadowbuffer = vec![f32::MIN; width * height];
-
-    let mut shadow_img: Image<RGB> = Image::new(width, height);
+    // gouraud shader w/ texture (starts at 2 cuz i deleted the first one lol)
+    let mut gouraud_img: Image<RGB> = Image::new(width, height);
     let mut zbuffer = vec![f32::MIN; width * height];
 
+    // normal-mapped shader w/ texture
+    let mut normal_map_img: Image<RGB> = Image::new(width, height);
+    let mut zbuffer2 = zbuffer.clone();
+
+    // normal-mapped shader w/ texture and specular mapping
+    let mut normal_spec_img: Image<RGB> = Image::new(width, height);
+    let mut zbuffer3 = zbuffer.clone();
+
+    // tangent normal shader
+    let mut tangent_normal_img: Image<RGB> = Image::new(width, height);
+    let mut zbuffer4 = zbuffer.clone();
+
+    // shadow shader (including depth shader)
+    let mut depth_img: Image<RGB> = Image::new(width, height);
+    let mut shadowbuffer = zbuffer.clone();
+
+    let mut shadow_img: Image<RGB> = Image::new(width, height);
+    let mut zbuffer5 = zbuffer.clone();
+
     // instantiate shaders
+    let mut texture_shader = GouraudShader::new(model.clone(), transform.clone());
+    let mut normal_mapped_shader = NormalMappedShader::new(model.clone(), transform.clone());
+    let mut normal_specular_shader = NormalSpecularShader::new(model.clone(), transform.clone());
+    let mut tangent_normal_shader = TangentNormalShader::new(model.clone(), transform.clone());
     let mut depth_shader = DepthShader::new(light_source, depth_transform.clone());
 
     // timed block //
     let now = time::Instant::now();
 
-    // first, calculate shadowbuffer
-    for obj_face in obj_faces.clone() {
-        let ndc = Shader::<RGB>::vertex(&mut depth_shader, obj_face.clone(), light_source);
-        let depth_screen_coords = ndc.map(|v| depth_transform.viewport_transform(v));
-        triangle(&mut depth_img, &depth_shader, depth_screen_coords,  &mut shadowbuffer);
-    }
-
-    // instantiate and use actual shader
-    let mut shadow_shader = ShadowShader::new(model, transform, shadow_transform, shadowbuffer);
     for obj_face in obj_faces {
-        let ndc = Shader::<RGB>::vertex(&mut shadow_shader, obj_face.clone(), light_source);
+        
+        let ndc = Shader::<RGB>::vertex(&mut texture_shader, obj_face.clone(), light_source);
+        let ndc2 = Shader::<RGB>::vertex(&mut normal_mapped_shader, obj_face.clone(), light_source);
+        let ndc3 = Shader::<RGB>::vertex(&mut normal_specular_shader, obj_face.clone(), light_source);
+        let ndc4 = Shader::<RGB>::vertex(&mut tangent_normal_shader, obj_face.clone(), light_source);
+        let ndc5 = Shader::<RGB>::vertex(&mut depth_shader, obj_face.clone(), light_source);
+
+        assert_eq!(ndc, ndc2);
+        assert_eq!(ndc2, ndc3);
+        assert_eq!(ndc3, ndc4);
+
         let screen_coords = ndc.map(|v| transform.viewport_transform(v));
-        triangle(&mut shadow_img, &shadow_shader, screen_coords,  &mut zbuffer);
+        let depth_screen_coords = ndc5.map(|v| depth_transform.viewport_transform(v));
+
+        triangle(&mut gouraud_img, &texture_shader, screen_coords,  &mut zbuffer);
+        triangle(&mut normal_map_img, &normal_mapped_shader, screen_coords,  &mut zbuffer2);
+        triangle(&mut normal_spec_img, &normal_specular_shader, screen_coords,  &mut zbuffer3);
+        triangle(&mut tangent_normal_img, &tangent_normal_shader, screen_coords,  &mut zbuffer4);
+        triangle(&mut depth_img, &depth_shader, depth_screen_coords,  &mut shadowbuffer);
+
     }
 
     let time_taken = now.elapsed();
@@ -89,8 +117,11 @@ fn main() {
     */
 
     println!("{:?}", time_taken);
+    gouraud_img.write_tga_file("output/gouraud.tga", true, false).unwrap();
+    normal_map_img.write_tga_file("output/normal_map.tga", true, false).unwrap();
+    normal_spec_img.write_tga_file("output/normal_spec.tga", true, false).unwrap();
+    tangent_normal_img.write_tga_file("output/tang_normal_map.tga", true, false).unwrap();
     depth_img.write_tga_file("output/depth.tga", true, false).unwrap();
-    shadow_img.write_tga_file("output/shadow.tga", true, false).unwrap();
 }
 
 
