@@ -32,9 +32,9 @@ fn main() {
     window.set_key_polling(true);
 
     // Initialize and bind a VAO and its VBO
-    let data = [
+    let data: [f32; 9] = [
         -0.5, -0.5, 0.0,
-        0.5 -0.5, 0.0,
+        0.5, -0.5, 0.0,
         0.0, 0.5, 0.0
     ];
     let mut vao: u32 = 0;
@@ -60,7 +60,7 @@ fn main() {
     let shader_program = unsafe { shader::create_and_link_shaders() };
     
     // Set viewport + framebuffer size callback fn
-    unsafe { gl::Viewport(0, 0, (width as f32*0.5) as i32, (height as f32*0.5) as i32); }
+    unsafe { gl::Viewport(0, 0, width as i32, height as i32); }
     window.set_framebuffer_size_callback(|_, w, h| unsafe {gl::Viewport(0, 0, w, h)});
 
     // Loop until the user closes the window
