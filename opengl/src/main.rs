@@ -3,17 +3,21 @@ mod shader;
 use glfw::{Action, Context, Key, OpenGlProfileHint, WindowHint};
 use glfw::fail_on_errors;
 use gl::types::*;
-use std::mem::size_of_val;
+use std::mem::{size_of, size_of_val};
 use std::ptr::null;
-
+use std::env;
 
 
 fn main() {
+    env::set_var("RUST_BACKTRACE", "1");
+
     // init glfw and set window hints as found in tutorial
     let mut glfw = glfw::init(fail_on_errors!()).unwrap();    
+    /* 
     glfw.window_hint(WindowHint::ContextVersionMajor(3));
     glfw.window_hint(WindowHint::ContextVersionMinor(3));
     glfw.window_hint(WindowHint::OpenGlProfile(OpenGlProfileHint::Core));
+    */
 
     // Create a windowed mode window and its OpenGL context
     let (width, height) = (640, 480);
@@ -27,48 +31,57 @@ fn main() {
     window.make_current();
     window.set_key_polling(true);
 
-    // Set viewport + framebuffer size callback fn
-    // SELF-NOTE: the closure is supposed to take a `Window` param, but since it's already tied to the `gl` instance, its not necessary
-    window.set_framebuffer_size_callback(|_, w, h| unsafe {gl::Viewport(0, 0, w, h)});
-
-    // Set shaders
+    // Initialize and bind a VAO and its VBO
+    let data = [
+        -0.5, -0.5, 0.0,
+        0.5 -0.5, 0.0,
+        0.0, 0.5, 0.0
+    ];
+    let mut vao: u32 = 0;
+    let mut vbo: u32 = 0;
     unsafe {
-        shader::create_and_link_shaders();
+        gl::GenBuffers(1, &mut vbo as *mut u32);
+        gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+        gl::BufferData(
+            gl::ARRAY_BUFFER, 
+            size_of_val(&data).try_into().unwrap(), 
+            data.as_ptr() as *const GLvoid,
+            gl::STATIC_DRAW
+        );
+
+        gl::GenVertexArrays(1, &mut vao as *mut u32);
+        gl::BindVertexArray(vao);
+
+        gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+        gl::VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, 3 * size_of::<f32>() as i32, null());
+        gl::EnableVertexAttribArray(0);
     }
+
+    let shader_program = unsafe { shader::create_and_link_shaders() };
+    
+    // Set viewport + framebuffer size callback fn
+    unsafe { gl::Viewport(0, 0, (width as f32*0.5) as i32, (height as f32*0.5) as i32); }
+    window.set_framebuffer_size_callback(|_, w, h| unsafe {gl::Viewport(0, 0, w, h)});
 
     // Loop until the user closes the window
     while !window.should_close() {
-        // Swap front and back buffers
         window.swap_buffers();
 
-       // Setting buffer and passing in vertex data
         unsafe { 
             // Set bg color
-            gl::ClearColor(0.2, 0.3, 0.3, 1.0);
+            gl::ClearColor(0.9, 0.3, 0.3, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT); 
 
-            // Generate a VBO, then bind it to array buffer
-            let mut vbo: u32 = 0;
-            gl::GenBuffers(1, &mut vbo as *mut u32);
-            gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-
-            // Pass vertex data into the buffer
-            let data = [
-                -0.5, -0.5, 0.0,
-                0.5, -0.5, 0.0,
-                0.0, 0.5, 0.0
-            ];
-            gl::BufferData(
-                gl::ARRAY_BUFFER, 
-                size_of_val(&data).try_into().unwrap(), 
-                data.as_ptr() as *const GLvoid, // cast to pointer, then pointer type to GLvoid/c_void
-                gl::STATIC_DRAW
-            );
-
-            // Specify how to read array buffer data
-            gl::VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, 3*64, null());
-            gl::EnableVertexAttribArray(0);
+            // Use shader + bind VAO
+            gl::UseProgram(shader_program);
+            gl::BindVertexArray(vao);
+            //gl::VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, i%50, null());
+            
+            // Draw triangles
+            gl::DrawArrays(gl::TRIANGLES, 0, 3);
         };
+
+        
 
         // Poll for and process events
         glfw.poll_events();

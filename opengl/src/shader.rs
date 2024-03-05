@@ -44,11 +44,8 @@ pub unsafe fn create_and_link_shaders() -> u32 {
 // compiles a shader, given its source code and a shader type
 // if it fails to compile, info will be printed out but the shader will still be returned
 unsafe fn compile_shader(shader_source: &str, shader_type: types::GLenum) -> u32 {
-    let c_str = CString::new(shader_source)
-        .unwrap()
-        .as_ptr(); // should be ok, once the shader compiles i dont need this anymore
-
-    let c_str_ptr: *const *const i8 = &c_str;
+    let c_str = CString::new(shader_source).unwrap();
+    let c_str_ptr: *const *const i8 = &c_str.as_ptr();
     let shader = gl::CreateShader(shader_type);
     gl::ShaderSource(shader, 1, c_str_ptr, null());
     gl::CompileShader(shader);
@@ -69,10 +66,10 @@ unsafe fn check_compilation_status(shader: u32) -> bool {
         let mut info_vec = vec![0; 512];
         gl::GetShaderInfoLog(shader, 512,null_mut(), info_vec.as_mut_ptr());
         let info_log = CStr::from_ptr(info_vec.as_mut_ptr()).to_str().unwrap();
-        println!("error: vertex shader compilation failed \n {info_log}");
+        println!("error: shader compilation failed \n {info_log}");
         false
     } else {
-        println!("vertex shader compilation succeeded");
+        println!("note: shader compilation succeeded");
         true
     }
 }
