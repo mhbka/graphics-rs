@@ -1,6 +1,7 @@
 mod glfw_init;
 mod gl_vao_init;
 mod shader;
+mod vao;
 
 use glfw::{Action, Context, Key};
 use shader::Shader;
@@ -12,7 +13,7 @@ fn main() {
     let use_old_ver = true;
 
     // Initialize GLFW window and make current + load functions into `gl`
-    let (mut glfw, mut window, mut events) = glfw_init::init(true);
+    let (mut glfw, mut window, mut events) = glfw_init::init(use_old_ver);
 
     // vertex data
     let vertices: Vec<f32> = vec![
@@ -53,11 +54,12 @@ fn main() {
 
             // Use shader + bind VAO
             shader_program.use_program();
-            gl::BindVertexArray(vao);
+            //gl::BindVertexArray(vao);
 
             // Draw triangles
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
 
+            // Check for any new errors
             let error = gl::GetError();
             if error != cur_error {
                 println!("error: {error}");

@@ -7,6 +7,7 @@ use gl::types;
 /// Wrapper struct for a shader program; encapsulates and tracks/sets shader program state.
 #[derive(Debug)]
 pub struct Shader {
+    name: String,
     program: u32,
     vertex_shader: u32,
     fragment_shader: u32,
@@ -62,6 +63,7 @@ impl Shader {
         gl::DeleteShader(fragment_shader);
     
         Shader {
+            name: shader_name.to_owned(),
             program: shader_program,
             vertex_shader,
             fragment_shader,
@@ -97,7 +99,7 @@ impl Shader {
 }
 
 
-/// Private implementation fns
+/// Private implementations
 impl Shader {
     unsafe fn compile_shader(shader_source: &str, shader_type: types::GLenum) -> u32 {
         let c_str = CString::new(shader_source).unwrap();
