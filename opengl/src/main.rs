@@ -47,7 +47,7 @@ fn main() {
     let mut ebo: u32 = 0;
     unsafe { init::gl_init(vertices.as_slice(), indices.as_slice(), &mut vao, &mut vbo, &mut ebo) };
 
-    let shader_program = unsafe { shader::create_and_link_shaders() };
+    let shader_program = unsafe { shader::create_and_link_shaders("test") };
     
     // Set viewport + framebuffer size callback fn
     unsafe { gl::Viewport(0, 0, width as i32, height as i32); }

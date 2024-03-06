@@ -5,7 +5,7 @@ use std::ptr::null;
 /** Performs initialization for openGL. */
 pub unsafe fn gl_init(vertices: &[f32], indices: &[u32], vao: &mut u32, vbo: &mut u32, ebo: &mut u32) {
     // bound check
-    if indices.len()%3 != 0 {panic!("indices array length is not modulo 3.")}
+    if indices.len()%3 != 0 { panic!("indices array length is not modulo 3.") }
 
     // generate and bind VBO, then copy vertex data into array buffer
     gl::GenBuffers(1, vbo as *mut u32);
@@ -16,7 +16,6 @@ pub unsafe fn gl_init(vertices: &[f32], indices: &[u32], vao: &mut u32, vbo: &mu
         vertices.as_ptr() as *const GLvoid,
         gl::STATIC_DRAW
     );
-    println!("{}", size_of_val(&vertices));
 
     // generate and bind EBO, then copy index data into element buffer
     gl::GenBuffers(1, ebo as *mut u32);
@@ -33,6 +32,6 @@ pub unsafe fn gl_init(vertices: &[f32], indices: &[u32], vao: &mut u32, vbo: &mu
     gl::BindVertexArray(*vao);
 
     // set vertex attribute pointers for VAO
-    gl::VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, 3 * size_of::<f32>() as i32, null());
+    gl::VertexAttribPointer(0, 3, gl::FLOAT, gl::FALSE, 3*size_of::<f32>() as i32, null());
     gl::EnableVertexAttribArray(0);
 }

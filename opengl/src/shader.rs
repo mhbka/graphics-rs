@@ -1,34 +1,23 @@
 use std::ffi::{CStr, CString};
 use std::ptr::{null, null_mut};
-
+use std::fs::read_to_string;
 use gl::types;
-
-const VERTEX_SHADER_SOURCE: &str = "
-    #version 330 core
-    layout (location = 0) in vec3 aPos;
-    void main()
-    {
-    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-    }
-";
-
-const FRAGMENT_SHADER_SOURCE: &str = "
-    #version 330 core
-    out vec4 FragColor;
-
-    void main()
-    {
-        FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
-    } 
-";
 
 
 // main shader entrypoint
-// compiles shaders and links them to shader program object
-pub unsafe fn create_and_link_shaders() -> u32 {
+// compiles vertex and fragment shaders, and links them to shader program object
+pub unsafe fn create_and_link_shaders(shader_name: &str) -> u32 {
     let shader_program = gl::CreateProgram();
-    let vertex_shader = compile_shader(VERTEX_SHADER_SOURCE, gl::VERTEX_SHADER);
-    let fragment_shader = compile_shader(FRAGMENT_SHADER_SOURCE, gl::FRAGMENT_SHADER);
+
+    let vertex_shader_source = 
+        read_to_string(&format!("shaders/{shader_name}.vert"))
+        .expect(&format!("Can't read {shader_name} vertex shader from file."));
+    let fragment_shader_source = 
+        read_to_string(&format!("shaders/{shader_name}.frag"))
+        .expect(&format!("Can't read {shader_name} fragment shader from file."));
+
+    let vertex_shader = compile_shader(vertex_shader_source.as_str(), gl::VERTEX_SHADER);
+    let fragment_shader = compile_shader(fragment_shader_source.as_str(), gl::FRAGMENT_SHADER);
 
     gl::AttachShader(shader_program, vertex_shader);
     gl::AttachShader(shader_program, fragment_shader);
