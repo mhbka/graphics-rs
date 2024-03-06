@@ -30,23 +30,27 @@ fn main() {
     window.make_current();
     window.set_key_polling(true);
 
-    // our vertex and index data
+    // vertex data
     let vertices: Vec<f32> = vec![
-        0.5,  0.5, 0.0,  // top right
-        0.5, -0.5, 0.0,  // bottom right
-       -0.5, -0.5, 0.0,  // bottom left
-       -0.5,  0.5, 0.0   // top left 
+        // positions        // colors
+        0.5, -0.5, 0.0,  1.0, 0.0, 0.0,   // bottom right
+        -0.5, -0.5, 0.0, 0.0, 1.0, 0.0,   // bottom left
+        0.0,  0.5, 0.0,  0.0, 0.0, 1.0    // top 
     ];
+    
+    /* 
+    // index data
     let indices: Vec<u32> = vec![
         0, 1, 3,
         1, 2, 3
     ];
+    */
 
     // Initialize and bind VAO, VBO, EBO
     let mut vao: u32 = 0;
     let mut vbo: u32 = 0;
     let mut ebo: u32 = 0;
-    unsafe { init::gl_init(vertices.as_slice(), indices.as_slice(), &mut vao, &mut vbo, &mut ebo) };
+    unsafe { init::gl_init(vertices.as_slice(), None, &mut vao, &mut vbo, &mut ebo) };
 
     let shader_program = unsafe { shader::create_and_link_shaders("test") };
     
@@ -54,6 +58,12 @@ fn main() {
     unsafe { gl::Viewport(0, 0, width as i32, height as i32); }
     window.set_framebuffer_size_callback(|_, w, h| unsafe {gl::Viewport(0, 0, w, h)});
 
+    let mut cur_error = unsafe { gl::GetError() };
+    if cur_error != 0 { 
+        panic!("error during init: {cur_error} ") 
+    } else { 
+        println!("note: initialized safely")
+    }
 
     // MAIN LOOP - until window is closed
     while !window.should_close() {
@@ -77,6 +87,12 @@ fn main() {
             // Draw triangles
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
             gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, null());
+
+            let error = gl::GetError();
+            if error!=0 && error!=cur_error { 
+                println!("error: {error}") ;
+                cur_error = error;
+            }
         };
 
         
