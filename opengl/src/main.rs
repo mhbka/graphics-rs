@@ -1,8 +1,9 @@
 mod glfw_init;
-mod gl_manager;
+mod gl_vao_init;
+mod shader;
 
 use glfw::{Action, Context, Key};
-use gl::types::*;
+use shader::Shader;
 use std::env;
 
 
@@ -33,16 +34,13 @@ fn main() {
     let mut vao: u32 = 0;
     let mut vbo: u32 = 0;
     let mut ebo: u32 = 0;
-    unsafe { gl_manager::init::init_vertices(vertices.as_slice(), None, &mut vao, &mut vbo, &mut ebo) };
+    unsafe { gl_vao_init::init(vertices.as_slice(), None, &mut vao, &mut vbo, &mut ebo) };
 
-    let shader_program = unsafe { gl_manager::shader::create_and_link_shaders("test") };
+    let shader_program = unsafe { Shader::new("test") };
 
     let mut cur_error = unsafe { gl::GetError() };
-    if cur_error != 0 { 
-        panic!("error during init: {cur_error} ");
-    } else { 
-        println!("note: initialized safely");
-    }
+    if cur_error != 0 { panic!("error during init: {cur_error} ");} 
+    else { println!("note: initialized safely"); }
 
     // MAIN LOOP - until window is closed
     while !window.should_close() {
@@ -54,7 +52,7 @@ fn main() {
             gl::Clear(gl::COLOR_BUFFER_BIT); 
 
             // Use shader + bind VAO
-            gl::UseProgram(shader_program);
+            shader_program.use_program();
             gl::BindVertexArray(vao);
 
             // Draw triangles
