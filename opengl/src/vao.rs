@@ -106,7 +106,7 @@ impl VAO {
             .fold(0, |a, b| a+b.length);
         let vertex_stride = vertex_attrs_size as i32 * size_of::<f32>() as i32;
     
-        // loop and set pointers for each vertex attribute, then enable it
+        // loop and set vertex attrib pointers for each vertex attribute, then enable it
         let mut cur_stride: i32 = 0;
         for (index, attr) in vertex_attrs.iter().enumerate() {
             println!("{index}, {cur_stride}");

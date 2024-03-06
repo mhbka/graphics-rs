@@ -22,6 +22,13 @@ fn main() {
         -0.5, -0.5, 0.0, 0.0, 1.0, 0.0,   // bottom left
         0.0,  0.5, 0.0,  0.0, 0.0, 1.0    // top 
     ];
+
+    // texture coords
+    let tex_coords = vec![
+        0.0, 0.0,  // lower-left corner  
+        1.0, 0.0,  // lower-right corner
+        0.5, 1.0   // top-center corner
+    ];
     
     // Initialize VAO
     let vertex_attrs = vec![VertexAttr::new("Position".to_owned(), 3), VertexAttr::new("Color".to_owned(), 3)];
