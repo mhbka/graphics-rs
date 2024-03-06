@@ -36,7 +36,7 @@ fn main() {
        -0.5, -0.5, 0.0,  // bottom left
        -0.5,  0.5, 0.0   // top left 
     ];
-    let indices: Vec<usize> = vec![
+    let indices: Vec<u32> = vec![
         0, 1, 3,
         1, 2, 3
     ];
@@ -65,7 +65,7 @@ fn main() {
             // Use shader + bind VAO
             gl::UseProgram(shader_program);
             gl::BindVertexArray(vao);
-        
+
             // Draw triangles
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
             gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, null());
