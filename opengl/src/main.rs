@@ -60,9 +60,9 @@ fn main() {
 
     let mut cur_error = unsafe { gl::GetError() };
     if cur_error != 0 { 
-        panic!("error during init: {cur_error} ") 
+        panic!("error during init: {cur_error} ");
     } else { 
-        println!("note: initialized safely")
+        println!("note: initialized safely");
     }
 
     // MAIN LOOP - until window is closed
@@ -78,24 +78,15 @@ fn main() {
             gl::UseProgram(shader_program);
             gl::BindVertexArray(vao);
 
-            // Set the color
-            let time = glfw.get_time() as f32;
-            let green = (f32::sin(time)/2.0) + 0.5;
-            let vertex_color_location = gl::GetUniformLocation(shader_program, CString::new("ourColor").unwrap().as_ptr());
-            gl::Uniform4f(vertex_color_location, 0.0, green, 0.0, 1.0);
-
             // Draw triangles
-            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
-            gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, null());
+            gl::DrawArrays(gl::TRIANGLES, 0, 6);
 
             let error = gl::GetError();
-            if error!=0 && error!=cur_error { 
-                println!("error: {error}") ;
+            if error != cur_error {
+                println!("error: {error}");
                 cur_error = error;
             }
         };
-
-        
 
         // Poll for and process events
         glfw.poll_events();
