@@ -78,12 +78,8 @@ impl Shader {
 
     /// Adds a new uniform to the shader program.
     pub unsafe fn add_uniform(&mut self, uniform_name: &str, uniform: Uniform) {
-        let uniform_location = gl::GetUniformLocation(
-            self.program, 
-            CString::new(uniform_name)
-                .unwrap()
-                .as_ptr() as *const i8
-        );
+        let cstr_uniform_name = CString::new(uniform_name).unwrap();
+        let uniform_location = gl::GetUniformLocation(self.program, cstr_uniform_name.as_ptr() as *const i8);
 
         if uniform_location == -1 { 
             panic!("Uniform {uniform_name} not found for shader program {}", self.program); 

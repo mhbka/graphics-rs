@@ -1,5 +1,4 @@
 mod glfw_init;
-mod gl_vao_init;
 mod shader;
 mod vao;
 
@@ -24,31 +23,27 @@ fn main() {
         0.0,  0.5, 0.0,  0.0, 0.0, 1.0    // top 
     ];
     
-    /* 
-    // index data
-    let indices: Vec<u32> = vec![
-        0, 1, 3,
-        1, 2, 3
-    ];
-    */
-
     // Initialize VAO
-    unsafe { VAO::new(vertices, None, Vec::new()) };
+    let vertex_attrs = vec![VertexAttr::new("Position".to_owned(), 3), VertexAttr::new("Color".to_owned(), 3)];
+    unsafe { VAO::new(vertices, None, vertex_attrs) };
 
     // Initialize and use shader
     let shader_program = unsafe { Shader::new("test") };
     unsafe { shader_program.use_program(); }
 
+    // Check for error before main loop (also using this for checking error during loop)
     let mut cur_error = unsafe { gl::GetError() };
     if cur_error != 0 { panic!("error during init: {cur_error} ");} 
     else { println!("note: initialized safely"); }
 
+    //
     // MAIN LOOP - until window is closed
+    // 
     while !window.should_close() {
         window.swap_buffers();
 
         unsafe { 
-            // Set bg color
+            // Set BG color
             gl::ClearColor(0.9, 0.3, 0.3, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT); 
 

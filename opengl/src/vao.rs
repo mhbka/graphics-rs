@@ -24,6 +24,11 @@ pub struct VertexAttr {
     name: String,
     length: usize
 }
+impl VertexAttr {
+    pub fn new(name: String, length: usize) -> Self {
+        VertexAttr {name, length}
+    }
+}
 
 
 /// Wrapper implementations for OpenGL shaders.
@@ -66,14 +71,14 @@ impl VAO {
         gl::BindVertexArray(*vao);    
     }
     
-    unsafe fn init_vbo(vertices: &[f32], vbo: &mut u32) {
+    unsafe fn init_vbo(buffer_data: &[f32], vbo: &mut u32) {
         // generate and bind VBO, then copy vertex data into array buffer
         gl::GenBuffers(1, vbo as *mut u32);
         gl::BindBuffer(gl::ARRAY_BUFFER, *vbo);
         gl::BufferData(
             gl::ARRAY_BUFFER, 
-            size_of_val(vertices).try_into().unwrap(), 
-            vertices.as_ptr() as *const GLvoid,
+            size_of_val(buffer_data).try_into().unwrap(), 
+            buffer_data.as_ptr() as *const GLvoid,
             gl::STATIC_DRAW
         );
     }
