@@ -19,7 +19,7 @@ pub struct VAO {
 
 
 // Represents a vertex attribute; in implementation, assumes that attribute datatype is 32 bits (ie f32, u32, i32)
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct VertexAttr {
     name: String,
     length: usize
@@ -107,16 +107,19 @@ impl VAO {
         let vertex_stride = vertex_attrs_size as i32 * size_of::<f32>() as i32;
     
         // loop and set pointers for each vertex attribute, then enable it
+        let mut cur_stride: i32 = 0;
         for (index, attr) in vertex_attrs.iter().enumerate() {
+            println!("{index}, {cur_stride}");
             gl::VertexAttribPointer(
                 index as u32, 
                 attr.length as i32, 
                 gl::FLOAT, 
                 gl::FALSE, 
                 vertex_stride, 
-                null()
+                cur_stride as *const GLvoid
             );
             gl::EnableVertexAttribArray(index as u32);
+            cur_stride += (attr.length * size_of::<f32>()) as i32;
         }
     }
 }
