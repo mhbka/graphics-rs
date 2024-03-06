@@ -2,8 +2,16 @@ use gl::types::GLvoid;
 use std::mem::{size_of, size_of_val};
 use std::ptr::null;
 
+
+/// Initializes all OpenGL state.
+/* 
+pub unsafe fn init() ->  {
+
+}
+*/
+
 /// Performs initialization for vertex-related state.
-pub unsafe fn gl_init(vertices: &[f32], indices: Option<&[u32]>, vao: &mut u32, vbo: &mut u32, ebo: &mut u32) {
+pub unsafe fn init_vertices(vertices: &[f32], indices: Option<&[u32]>, vao: &mut u32, vbo: &mut u32, ebo: &mut u32) {
     // only gen and bind EBO if we passed in indices
     match indices {
         Some(indices) => init_ebo(indices, ebo),

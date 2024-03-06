@@ -3,6 +3,11 @@ use std::ptr::{null, null_mut};
 use std::fs::read_to_string;
 use gl::types;
 
+pub struct Shader {
+    program: u32,
+    
+}
+
 
 // main shader entrypoint
 // compiles vertex and fragment shaders, links them to shader program object, and returns program ID
