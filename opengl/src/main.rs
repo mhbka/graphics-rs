@@ -5,6 +5,7 @@ mod vao;
 
 use glfw::{Action, Context, Key};
 use shader::Shader;
+use vao::{VAO, VertexAttr};
 use std::env;
 
 
@@ -31,13 +32,12 @@ fn main() {
     ];
     */
 
-    // Initialize and bind VAO, VBO, EBO
-    let mut vao: u32 = 0;
-    let mut vbo: u32 = 0;
-    let mut ebo: u32 = 0;
-    unsafe { gl_vao_init::init(vertices.as_slice(), None, &mut vao, &mut vbo, &mut ebo) };
+    // Initialize VAO
+    unsafe { VAO::new(vertices, None, Vec::new()) };
 
+    // Initialize and use shader
     let shader_program = unsafe { Shader::new("test") };
+    unsafe { shader_program.use_program(); }
 
     let mut cur_error = unsafe { gl::GetError() };
     if cur_error != 0 { panic!("error during init: {cur_error} ");} 
@@ -51,10 +51,6 @@ fn main() {
             // Set bg color
             gl::ClearColor(0.9, 0.3, 0.3, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT); 
-
-            // Use shader + bind VAO
-            shader_program.use_program();
-            //gl::BindVertexArray(vao);
 
             // Draw triangles
             gl::DrawArrays(gl::TRIANGLES, 0, 3);
