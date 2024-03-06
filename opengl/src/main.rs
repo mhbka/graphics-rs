@@ -5,6 +5,7 @@ use glfw::{Action, Context, Key, OpenGlProfileHint, WindowHint};
 use glfw::fail_on_errors;
 use gl::types::*;
 use std::env;
+use std::ffi::CString;
 use std::ptr::null;
 
 
@@ -53,7 +54,8 @@ fn main() {
     unsafe { gl::Viewport(0, 0, width as i32, height as i32); }
     window.set_framebuffer_size_callback(|_, w, h| unsafe {gl::Viewport(0, 0, w, h)});
 
-    // Loop until the user closes the window
+
+    // MAIN LOOP - until window is closed
     while !window.should_close() {
         window.swap_buffers();
 
@@ -65,6 +67,12 @@ fn main() {
             // Use shader + bind VAO
             gl::UseProgram(shader_program);
             gl::BindVertexArray(vao);
+
+            // Set the color
+            let time = glfw.get_time() as f32;
+            let green = (f32::sin(time)/2.0) + 0.5;
+            let vertex_color_location = gl::GetUniformLocation(shader_program, CString::new("ourColor").unwrap().as_ptr());
+            gl::Uniform4f(vertex_color_location, 0.0, green, 0.0, 1.0);
 
             // Draw triangles
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
