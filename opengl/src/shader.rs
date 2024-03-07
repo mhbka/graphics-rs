@@ -4,17 +4,6 @@ use std::fs::read_to_string;
 use gl::types;
 
 
-/// Wrapper struct for a shader program; encapsulates and tracks/sets shader program state.
-#[derive(Debug)]
-pub struct Shader {
-    name: String,
-    program: u32,
-    vertex_shader: u32,
-    fragment_shader: u32,
-    uniforms: Vec<Uniform>
-}
-
-
 /// Wrapper struct and enum for different types of shader uniforms.
 #[derive(Debug)]
 pub struct Uniform {
@@ -36,6 +25,16 @@ pub enum UniformType {
     // TODO: Add other types as they become necessary (including any match statements using Uniform)
 }
 
+
+/// Wrapper struct for a shader program; encapsulates and tracks/sets shader program state.
+#[derive(Debug)]
+pub struct Shader {
+    name: String,
+    program: u32,
+    vertex_shader: u32,
+    fragment_shader: u32,
+    uniforms: Vec<Uniform>
+}
 
 /// Wrapper implementations for OpenGL shaders.
 impl Shader {

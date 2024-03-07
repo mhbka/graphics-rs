@@ -2,6 +2,20 @@ use std::{mem::{size_of, size_of_val}, ptr::null};
 use gl::types::*;
 
 
+/// Represents a vertex attribute; in implementation, assumes that attribute datatype is 32 bits (ie f32, u32, i32).
+#[derive(Clone, Debug)]
+pub struct VertexAttr {
+    name: String, // just for knowledge, not used in openGL
+    length: usize
+}
+
+impl VertexAttr {
+    pub fn new(name: String, length: usize) -> Self {
+        VertexAttr {name, length}
+    }
+}
+
+
 /// Wrapper struct for a VAO.
 pub struct VAO {
     // VAO + vertex attributes
@@ -16,20 +30,6 @@ pub struct VAO {
     ebo: Option<u32>,
     index_data: Option<Vec<u32>>
 }
-
-
-/// Represents a vertex attribute; in implementation, assumes that attribute datatype is 32 bits (ie f32, u32, i32).
-#[derive(Clone, Debug)]
-pub struct VertexAttr {
-    name: String, // just for knowledge, not used in openGL
-    length: usize
-}
-impl VertexAttr {
-    pub fn new(name: String, length: usize) -> Self {
-        VertexAttr {name, length}
-    }
-}
-
 
 /// Public fns
 impl VAO {
