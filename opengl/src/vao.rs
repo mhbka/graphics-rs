@@ -2,7 +2,7 @@ use std::{mem::{size_of, size_of_val}, ptr::null};
 use gl::types::*;
 
 
-/// Wrapper struct for a VAO; encapsulates and tracks/sets VAO state.
+/// Wrapper struct for a VAO.
 pub struct VAO {
     // VAO + vertex attributes
     vao: u32,
@@ -18,7 +18,7 @@ pub struct VAO {
 }
 
 
-// Represents a vertex attribute; in implementation, assumes that attribute datatype is 32 bits (ie f32, u32, i32)
+/// Represents a vertex attribute; in implementation, assumes that attribute datatype is 32 bits (ie f32, u32, i32).
 #[derive(Clone, Debug)]
 pub struct VertexAttr {
     name: String,
@@ -31,7 +31,7 @@ impl VertexAttr {
 }
 
 
-/// Wrapper implementations for OpenGL shaders.
+/// Public fns
 impl VAO {
     pub unsafe fn new(buffer_data: Vec<f32>, index_data: Option<Vec<u32>>, vertex_attrs: Vec<VertexAttr>) -> Self {
         let (mut vao, mut vbo, mut ebo) = (0, 0, Some(0));
@@ -63,7 +63,7 @@ impl VAO {
 }
 
 
-// private implementations
+// Internal implementations
 impl VAO {
     unsafe fn init_vao(vao: &mut u32) {
         // generate and bind VAO
@@ -109,7 +109,6 @@ impl VAO {
         // loop and set vertex attrib pointers for each vertex attribute, then enable it
         let mut cur_stride: i32 = 0;
         for (index, attr) in vertex_attrs.iter().enumerate() {
-            println!("{index}, {cur_stride}");
             gl::VertexAttribPointer(
                 index as u32, 
                 attr.length as i32, 

@@ -35,9 +35,9 @@ impl Shader {
     pub unsafe fn new(shader_name: &str) -> Self {
         let shader_program = gl::CreateProgram();
 
-        let vertex_shader_source = read_to_string(&format!("shaders/{shader_name}.vert"))
+        let vertex_shader_source = read_to_string(&format!("assets/shaders/{shader_name}.vert"))
             .expect(&format!("Can't read {shader_name} vertex shader from file."));
-        let fragment_shader_source = read_to_string(&format!("shaders/{shader_name}.frag"))
+        let fragment_shader_source = read_to_string(&format!("assets/shaders/{shader_name}.frag"))
             .expect(&format!("Can't read {shader_name} fragment shader from file."));
 
         let vertex_shader = Shader::compile_shader(vertex_shader_source.as_str(), gl::VERTEX_SHADER);
@@ -46,18 +46,7 @@ impl Shader {
         gl::AttachShader(shader_program, fragment_shader);
     
         gl::LinkProgram(shader_program);
-        let mut success = 1;
-        gl::GetProgramiv(shader_program, gl::LINK_STATUS, &mut success as *mut i32);
-        if success != 1 {
-            if success <= 0 {
-                let mut info_vec = vec![0; 512];
-                gl::GetProgramInfoLog(shader_program, 512,null_mut(), info_vec.as_mut_ptr());
-                let info_log = CStr::from_ptr(info_vec.as_mut_ptr()).to_str().unwrap();
-                panic!("error: shader compilation failed \n {info_log}");
-            } else {
-                println!("note: shader compilation succeeded");
-            }
-        }
+        Shader::check_program_link_status(shader_program);
         
         gl::DeleteShader(vertex_shader);
         gl::DeleteShader(fragment_shader);
@@ -71,7 +60,7 @@ impl Shader {
         }
     }
 
-    /// Use the shader program.
+    /// Activates the shader program.
     pub unsafe fn use_program(&self) {
         gl::UseProgram(self.program);
     }
@@ -122,6 +111,21 @@ impl Shader {
             false
         } else {
             println!("note: shader compilation succeeded");
+            true
+        }
+    }
+
+    unsafe fn check_program_link_status(program: u32) -> bool {
+        let mut success = 1;
+        gl::GetProgramiv(program, gl::LINK_STATUS, &mut success as *mut i32);
+        if success != 1 {
+            let mut info_vec = vec![0; 512];
+            gl::GetProgramInfoLog(program, 512,null_mut(), info_vec.as_mut_ptr());
+            let info_log = CStr::from_ptr(info_vec.as_mut_ptr()).to_str().unwrap();
+            println!("error: shader program linking failed: \n {info_log}");
+            false
+        } else {
+            println!("note: shader program linking succeeded");
             true
         }
     }
