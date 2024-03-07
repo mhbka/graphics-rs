@@ -3,8 +3,9 @@ mod shader;
 mod vao;
 mod texture;
 
+use gl::types::GLvoid;
 use glfw::{Action, Context, Key};
-use shader::Shader;
+use shader::{Shader, Uniform};
 use vao::{VAO, VertexAttr};
 use texture::Texture;
 use std::env;
@@ -25,6 +26,11 @@ fn main() {
         -0.5, -0.5, 0.0,   0.0, 0.0, 1.0,   0.0, 0.0,   // bottom left
         -0.5,  0.5, 0.0,   1.0, 1.0, 0.0,   0.0, 1.0    // top left 
     ];
+
+    let index_data: Vec<u32> = vec![
+        0, 1, 3,
+        1, 2, 3
+    ];
     
     // Initialize VAO
     let vertex_attrs = vec![
@@ -32,7 +38,8 @@ fn main() {
         VertexAttr::new("Color".to_owned(), 3),
         VertexAttr::new("Texture Coords".to_owned(), 2)
         ];
-    unsafe { VAO::new(vertex_data, None, vertex_attrs) };
+    let vao = unsafe { VAO::new(vertex_data, Some(index_data), vertex_attrs) };
+    unsafe {vao.check_binding()};
 
     // Initialize and use shader
     let shader_program = unsafe { Shader::new("test") };
@@ -58,7 +65,8 @@ fn main() {
             gl::Clear(gl::COLOR_BUFFER_BIT); 
 
             // Draw triangles
-            gl::DrawArrays(gl::TRIANGLES, 0, 4);
+            gl::BindTexture(gl::TEXTURE_2D, texture.texture);
+            gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, 0 as *const GLvoid);
 
             // Check for any new errors
             let error = gl::GetError();

@@ -36,18 +36,18 @@ impl VAO {
     pub unsafe fn new(buffer_data: Vec<f32>, index_data: Option<Vec<u32>>, vertex_attrs: Vec<VertexAttr>) -> Self {
         let (mut vao, mut vbo, mut ebo) = (0, 0, Some(0));
 
-        // only gen and bind an EBO if index_data is present + copy index data
-        match &index_data {
-            Some(index_data) => { VAO::init_ebo(index_data.as_slice(), &mut ebo.unwrap()) },
-            None => { ebo = None; }
-        }
+        // gen and bind the VAO
+        VAO::init_vao(&mut vao);
 
         // gen and bind an EBO + copy buffer data
         VAO::init_vbo(buffer_data.as_slice(), &mut vbo);
 
-        // gen and bind the VAO
-        VAO::init_vao(&mut vao);
-
+        // only gen and bind an EBO if index_data is present + copy index data
+        match &index_data {
+            Some(index_data) => { VAO::init_ebo(index_data.as_slice(), &mut ebo.as_mut().unwrap()) },
+            None => { ebo = None; }
+        }
+        
         // set vertex attributes
         VAO::set_vertex_attrs(vao, vertex_attrs.clone());
 
@@ -60,11 +60,40 @@ impl VAO {
             index_data
         }
     }
+
+    pub unsafe fn bind(&self) {
+        gl::BindVertexArray(self.vao)
+    }
+
+    pub fn vao(&self) -> u32 { self.vao }
+    pub fn vbo(&self) -> u32 { self.vbo }
+    pub fn ebo(&self) -> Option<u32> { self.ebo } 
 }
 
 
 // Internal implementations
 impl VAO {
+    // test
+    pub unsafe fn check_binding(&self) {
+        gl::BindVertexArray(self.vao);
+
+        let mut bound_ebo = 0;
+        gl::BindBuffer(gl::ARRAY_BUFFER, self.ebo.unwrap());
+        gl::GetVertexArrayiv(self.vao, gl::ELEMENT_ARRAY_BUFFER_BINDING, &mut bound_ebo as *mut i32);
+        if bound_ebo == 0 {println!("ebo not bound")} 
+        else {println!("ebo bound")}
+
+        let mut max_attribs: i32 = 0;
+        gl::GetIntegerv(gl::MAX_VERTEX_ATTRIBS, &mut max_attribs as *mut i32);
+        
+        let mut bound_vbo = 0;
+        for i in 0..max_attribs {
+            gl::GetVertexAttribiv(i as u32, gl::VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, &mut bound_vbo as *mut i32);
+            if bound_vbo !=0 {println!("bound vbo (attrib {i})")}
+            bound_vbo = 0;
+        }
+    }
+        
     unsafe fn init_vao(vao: &mut u32) {
         // generate and bind VAO
         gl::GenVertexArrays(1, vao as *mut u32);
@@ -83,22 +112,24 @@ impl VAO {
         );
     }
 
-    unsafe fn init_ebo(indices: &[u32], ebo: &mut u32) {
+    unsafe fn init_ebo(index_data: &[u32], ebo: &mut u32) {
         // each face = 3 vertices, so length must be mod 3
-        if indices.len()%3 != 0 { panic!("indices array length is not modulo 3.") }
+        if index_data.len()%3 != 0 { panic!("indices array length is not modulo 3.") }
     
         // generate and bind EBO, then copy index data into element buffer
         gl::GenBuffers(1, ebo as *mut u32);
         gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, *ebo);
         gl::BufferData(
             gl::ELEMENT_ARRAY_BUFFER,
-            size_of_val(indices).try_into().unwrap(),
-            indices.as_ptr() as *const GLvoid,
+            size_of_val(index_data).try_into().unwrap(),
+            index_data.as_ptr() as *const GLvoid,
             gl::STATIC_DRAW
         );
     }
 
     unsafe fn set_vertex_attrs(vao: u32, vertex_attrs: Vec<VertexAttr>) {
+        gl::BindVertexArray(vao);
+
         // set the stride (total size of a vertex's attributes)
         let vertex_attrs_size = vertex_attrs
             .clone()

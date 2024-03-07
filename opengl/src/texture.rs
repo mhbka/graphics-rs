@@ -3,8 +3,8 @@ use gl::types::*;
 
 /// Wrapper struct for a texture.
 pub struct Texture {
-    filename: String,
-    texture: u32,
+    pub filename: String,
+    pub texture: u32,
 }
 
 // Public fns
