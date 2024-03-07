@@ -42,12 +42,12 @@ impl VAO {
         // gen and bind an EBO + copy buffer data
         VAO::init_vbo(buffer_data.as_slice(), &mut vbo);
 
-        // only gen and bind an EBO if index_data is present + copy index data
+        // if index_data is present, gen and bind an EBO  + copy index data
         match &index_data {
             Some(index_data) => { VAO::init_ebo(index_data.as_slice(), &mut ebo.as_mut().unwrap()) },
             None => { ebo = None; }
         }
-        
+
         // set vertex attributes
         VAO::set_vertex_attrs(vao, vertex_attrs.clone());
 
@@ -61,10 +61,12 @@ impl VAO {
         }
     }
 
+    /// Bind the VAO.
     pub unsafe fn bind(&self) {
         gl::BindVertexArray(self.vao)
     }
 
+    // Getters
     pub fn vao(&self) -> u32 { self.vao }
     pub fn vbo(&self) -> u32 { self.vbo }
     pub fn ebo(&self) -> Option<u32> { self.ebo } 
@@ -73,7 +75,7 @@ impl VAO {
 
 // Internal implementations
 impl VAO {
-    // test
+    // test fn; check if EBO and VBOs are bound
     pub unsafe fn check_binding(&self) {
         gl::BindVertexArray(self.vao);
 

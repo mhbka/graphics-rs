@@ -18,20 +18,21 @@ pub struct Shader {
 /// Wrapper struct and enum for different types of shader uniforms.
 #[derive(Debug)]
 pub struct Uniform {
-    name: String,
-    uniform_type: UniformType
+    pub name: String,
+    pub uniform_type: UniformType
 }
 
 #[derive(Debug, Clone, Copy)]
 pub enum UniformType {
     Float4(f32, f32, f32, f32),
+    Int1(i32),
     // TODO: Add other types as they become necessary (including any match statements using Uniform)
 }
 
 
 /// Wrapper implementations for OpenGL shaders.
 impl Shader {
-    /// Generates a new shader program with the specified vertex and fragment shaders.
+    /// Create and use a new shader program, with the specified vertex and fragment shaders.
     pub unsafe fn new(shader_name: &str) -> Self {
         let shader_program = gl::CreateProgram();
 
@@ -50,6 +51,8 @@ impl Shader {
         
         gl::DeleteShader(vertex_shader);
         gl::DeleteShader(fragment_shader);
+
+        gl::UseProgram(shader_program);
     
         Shader {
             name: shader_name.to_owned(),
@@ -66,16 +69,17 @@ impl Shader {
     }
 
     /// Adds a new uniform to the shader program.
-    pub unsafe fn add_uniform(&mut self, uniform_name: &str, uniform: Uniform) {
-        let cstr_uniform_name = CString::new(uniform_name).unwrap();
+    pub unsafe fn add_uniform(&mut self, uniform: Uniform) {
+        let cstr_uniform_name = CString::new(uniform.name.clone()).unwrap();
         let uniform_location = gl::GetUniformLocation(self.program, cstr_uniform_name.as_ptr() as *const i8);
 
         if uniform_location == -1 { 
-            panic!("Uniform {uniform_name} not found for shader program {}", self.program); 
+            panic!("Uniform {} not found for shader program {}", uniform.name, self.program); 
         }
 
         match uniform.uniform_type {
             UniformType::Float4(x, y, z, w) => gl::Uniform4f(uniform_location, x, y, z, w),
+            UniformType::Int1(i) => gl::Uniform1i(uniform_location, i),
             other => println!("Unaccounted Uniform enum: {other:?}")
         }
 

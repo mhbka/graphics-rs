@@ -1,15 +1,21 @@
-use image::{io::Reader as ImageReader, GenericImageView, Pixel, Pixels};
+use image::io::Reader as ImageReader;
 use gl::types::*;
 
 /// Wrapper struct for a texture.
 pub struct Texture {
     pub filename: String,
     pub texture: u32,
+    pub texture_unit: u32
 }
 
 // Public fns
 impl Texture {
-    pub unsafe fn new(filename: &str) -> Self {
+    pub unsafe fn new(filename: &str, mut texture_unit: GLenum) -> Self {
+        // try to activate texture unit (should always work if `texture_unit` is valid)
+        if !Texture::activate_texture_unit(texture_unit) { 
+            texture_unit = u32::MAX;  // invalid state
+        }
+
         // gen and bind a texture object
         let mut texture = 0;
         gl::GenTextures(1, &mut texture as *mut u32);
@@ -18,7 +24,7 @@ impl Texture {
         // set options for the texture
         Texture::set_options(texture);
 
-        // load texture image data and copy tocurrently bound texture
+        // load texture image data and copy to currently bound texture
         let (width, height, flattened_pixels) = Texture::load_image_data_rgb(filename);
         gl::TexImage2D(
             gl::TEXTURE_2D, 
@@ -35,7 +41,7 @@ impl Texture {
         // generate a mipmap for this texture
         gl::GenerateMipmap(gl::TEXTURE_2D);
 
-        Texture {filename: filename.to_owned(), texture}
+        Texture {filename: filename.to_owned(), texture, texture_unit}
     }
 }
 
@@ -56,7 +62,19 @@ impl Texture {
         (width, height, flattened_pixels)
     }
 
+    unsafe fn activate_texture_unit(texture_unit: GLenum) -> bool {
+        gl::ActiveTexture(texture_unit);
+        
+        let err = gl::GetError();
+        if err != 0 { 
+            println!("error: problem during activating texture unit ({err})");
+            return false;
+        }
+        true
+    }
+
     unsafe fn set_options(texture: u32) {
+        // TODO: make this configurable
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);	
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR_MIPMAP_LINEAR as i32);

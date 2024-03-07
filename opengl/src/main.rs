@@ -5,7 +5,7 @@ mod texture;
 
 use gl::types::GLvoid;
 use glfw::{Action, Context, Key};
-use shader::{Shader, Uniform};
+use shader::{Shader, Uniform, UniformType};
 use vao::{VAO, VertexAttr};
 use texture::Texture;
 use std::env;
@@ -23,8 +23,8 @@ fn main() {
         // positions      // colors        // texture coords
         0.5,  0.5, 0.0,   1.0, 0.0, 0.0,   1.0, 1.0,   // top right
         0.5, -0.5, 0.0,   0.0, 1.0, 0.0,   1.0, 0.0,   // bottom right
-        -0.5, -0.5, 0.0,   0.0, 0.0, 1.0,   0.0, 0.0,   // bottom left
-        -0.5,  0.5, 0.0,   1.0, 1.0, 0.0,   0.0, 1.0    // top left 
+        -0.5, -0.5, 0.0,  0.0, 0.0, 1.0,   0.0, 0.0,   // bottom left
+        -0.5,  0.5, 0.0,  1.0, 1.0, 0.0,   0.0, 1.0    // top left 
     ];
 
     let index_data: Vec<u32> = vec![
@@ -39,14 +39,18 @@ fn main() {
         VertexAttr::new("Texture Coords".to_owned(), 2)
         ];
     let vao = unsafe { VAO::new(vertex_data, Some(index_data), vertex_attrs) };
-    unsafe {vao.check_binding()};
+    // unsafe { vao.check_binding() };
 
-    // Initialize and use shader
-    let shader_program = unsafe { Shader::new("test") };
-    unsafe { shader_program.use_program(); }
+    // Initialize textures to texture units
+    let wall_texture = unsafe { Texture::new("wall.jpg", gl::TEXTURE1) };
+    let wall_texture = unsafe { Texture::new("wall.jpg", gl::TEXTURE2) };
 
-    // Initialize texture
-    let texture = unsafe { Texture::new("wall.jpg") };
+    // Initialize and use shader + add textures as uniforms
+    let mut shader_program = unsafe { Shader::new("test") };
+    unsafe {
+        shader_program.add_uniform(Uniform {name: "texture1".to_owned(), uniform_type: UniformType::Int1(0)});
+        shader_program.add_uniform(Uniform {name: "texture2".to_owned(), uniform_type: UniformType::Int1(1)});
+    }
 
     // Check for error before main loop (also using this for checking error during loop)
     let mut cur_error = unsafe { gl::GetError() };
@@ -65,7 +69,6 @@ fn main() {
             gl::Clear(gl::COLOR_BUFFER_BIT); 
 
             // Draw triangles
-            gl::BindTexture(gl::TEXTURE_2D, texture.texture);
             gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, 0 as *const GLvoid);
 
             // Check for any new errors
