@@ -4,7 +4,7 @@ mod vao;
 mod texture;
 
 use gl::types::GLvoid;
-use glfw::{Action, Context, Key};
+use glfw::{Action, Context, Key, WindowEvent};
 use shader::{Shader, Uniform, UniformType};
 use vao::{VAO, VertexAttr};
 use texture::Texture;
@@ -41,16 +41,18 @@ fn main() {
     let vao = unsafe { VAO::new(vertex_data, Some(index_data), vertex_attrs) };
     // unsafe { vao.check_binding() };
 
-    // Initialize textures to texture units
+    // Initialize textures to texture units + amount to mix them
     let texture1 = unsafe { Texture::new("wall.jpg", gl::TEXTURE1) };
     let texture2 = unsafe { Texture::new("smileyface.png", gl::TEXTURE2) };
+    let mut mix_amount = 0.2;
 
     // Initialize and use shader + add textures as uniforms
     let mut shader_program = unsafe { Shader::new("test") };
     unsafe {
         // Note: uniform value must equal texture unit's number (ie TEXTURE15 => UniformType::Int1(15))
-        shader_program.add_uniform(Uniform {name: "texture1".to_owned(), uniform_type: UniformType::Int1(1)});
-        shader_program.add_uniform(Uniform {name: "texture2".to_owned(), uniform_type: UniformType::Int1(2)});
+        shader_program.set_uniform(Uniform::new("texture1".to_owned(), UniformType::Int1(1)));
+        shader_program.set_uniform(Uniform::new("texture2".to_owned(), UniformType::Int1(2)));
+        shader_program.set_uniform(Uniform::new("mix_amount".to_owned(), UniformType::Float1(mix_amount)));
     }
 
     // Check for error before main loop (also using this for checking error during loop)
@@ -85,8 +87,20 @@ fn main() {
         for (_, event) in glfw::flush_messages(&events) {
             println!("{:?}", event);
             match event {
-                glfw::WindowEvent::Key(Key::Escape, _, Action::Press, _) => {
+                WindowEvent::Key(Key::Escape, _, Action::Press, _) => {
                     window.set_should_close(true)
+                },
+                WindowEvent::Key(Key::Up, _, Action::Press, _) => {
+                    mix_amount += 0.1;
+                    unsafe {
+                        shader_program.set_uniform(Uniform::new("mix_amount".to_owned(), UniformType::Float1(mix_amount)));
+                    }
+                },
+                WindowEvent::Key(Key::Down, _, Action::Press, _) => {
+                    mix_amount -= 0.1;
+                    unsafe {
+                        shader_program.set_uniform(Uniform::new("mix_amount".to_owned(), UniformType::Float1(mix_amount)));
+                    }
                 },
                 _ => {},
             }

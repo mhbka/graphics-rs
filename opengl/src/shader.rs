@@ -22,9 +22,16 @@ pub struct Uniform {
     pub uniform_type: UniformType
 }
 
+impl Uniform {
+    pub fn new(name: String, uniform_type: UniformType) -> Self {
+        Uniform { name, uniform_type }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum UniformType {
     Float4(f32, f32, f32, f32),
+    Float1(f32),
     Int1(i32),
     // TODO: Add other types as they become necessary (including any match statements using Uniform)
 }
@@ -68,8 +75,8 @@ impl Shader {
         gl::UseProgram(self.program);
     }
 
-    /// Adds a new uniform to the shader program.
-    pub unsafe fn add_uniform(&mut self, uniform: Uniform) {
+    /// Adds/sets a new uniform to the shader program.
+    pub unsafe fn set_uniform(&mut self, uniform: Uniform) {
         let cstr_uniform_name = CString::new(uniform.name.clone()).unwrap();
         let uniform_location = gl::GetUniformLocation(self.program, cstr_uniform_name.as_ptr() as *const i8);
 
@@ -79,11 +86,16 @@ impl Shader {
 
         match uniform.uniform_type {
             UniformType::Float4(x, y, z, w) => gl::Uniform4f(uniform_location, x, y, z, w),
+            UniformType::Float1(i) => gl::Uniform1f(uniform_location, i),
             UniformType::Int1(i) => gl::Uniform1i(uniform_location, i),
             other => println!("Unaccounted Uniform enum: {other:?}")
         }
 
-        self.uniforms.push(uniform);
+        if let Some(index) = self.uniforms.iter().position(|cur_uniform| cur_uniform.name == uniform.name) {
+            self.uniforms[index] = uniform;
+        } else {
+            self.uniforms.push(uniform);
+        }
     }
 }
 
