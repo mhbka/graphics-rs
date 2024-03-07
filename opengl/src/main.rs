@@ -42,20 +42,20 @@ fn main() {
     // unsafe { vao.check_binding() };
 
     // Initialize textures to texture units
-    let wall_texture = unsafe { Texture::new("wall.jpg", gl::TEXTURE1) };
-    let wall_texture = unsafe { Texture::new("wall.jpg", gl::TEXTURE2) };
+    let texture1 = unsafe { Texture::new("wall.jpg", gl::TEXTURE1) };
+    let texture2 = unsafe { Texture::new("smileyface.png", gl::TEXTURE2) };
 
     // Initialize and use shader + add textures as uniforms
     let mut shader_program = unsafe { Shader::new("test") };
     unsafe {
-        shader_program.add_uniform(Uniform {name: "texture1".to_owned(), uniform_type: UniformType::Int1(0)});
-        shader_program.add_uniform(Uniform {name: "texture2".to_owned(), uniform_type: UniformType::Int1(1)});
+        shader_program.add_uniform(Uniform {name: "texture1".to_owned(), uniform_type: UniformType::Int1(1)});
+        shader_program.add_uniform(Uniform {name: "texture2".to_owned(), uniform_type: UniformType::Int1(2)});
     }
 
     // Check for error before main loop (also using this for checking error during loop)
     let mut cur_error = unsafe { gl::GetError() };
     if cur_error != 0 { panic!("error during init: {cur_error} ");} 
-    else { println!("note: initialized safely"); }
+    else { println!("note: initialization succeeded; going to event loop"); }
 
     //
     // MAIN LOOP - until window is closed

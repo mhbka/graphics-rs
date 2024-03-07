@@ -21,7 +21,7 @@ pub struct VAO {
 /// Represents a vertex attribute; in implementation, assumes that attribute datatype is 32 bits (ie f32, u32, i32).
 #[derive(Clone, Debug)]
 pub struct VertexAttr {
-    name: String,
+    name: String, // just for knowledge, not used in openGL
     length: usize
 }
 impl VertexAttr {
@@ -36,10 +36,8 @@ impl VAO {
     pub unsafe fn new(buffer_data: Vec<f32>, index_data: Option<Vec<u32>>, vertex_attrs: Vec<VertexAttr>) -> Self {
         let (mut vao, mut vbo, mut ebo) = (0, 0, Some(0));
 
-        // gen and bind the VAO
         VAO::init_vao(&mut vao);
 
-        // gen and bind an EBO + copy buffer data
         VAO::init_vbo(buffer_data.as_slice(), &mut vbo);
 
         // if index_data is present, gen and bind an EBO  + copy index data
@@ -48,7 +46,6 @@ impl VAO {
             None => { ebo = None; }
         }
 
-        // set vertex attributes
         VAO::set_vertex_attrs(vao, vertex_attrs.clone());
 
         VAO {
@@ -95,15 +92,15 @@ impl VAO {
             bound_vbo = 0;
         }
     }
-        
+    
+    // generate and bind VAO
     unsafe fn init_vao(vao: &mut u32) {
-        // generate and bind VAO
         gl::GenVertexArrays(1, vao as *mut u32);
         gl::BindVertexArray(*vao);    
     }
     
+    // generate and bind VBO, then copy vertex data into array buffer
     unsafe fn init_vbo(buffer_data: &[f32], vbo: &mut u32) {
-        // generate and bind VBO, then copy vertex data into array buffer
         gl::GenBuffers(1, vbo as *mut u32);
         gl::BindBuffer(gl::ARRAY_BUFFER, *vbo);
         gl::BufferData(
@@ -114,11 +111,11 @@ impl VAO {
         );
     }
 
+    // generate and bind EBO, then copy index data into element buffer
     unsafe fn init_ebo(index_data: &[u32], ebo: &mut u32) {
         // each face = 3 vertices, so length must be mod 3
         if index_data.len()%3 != 0 { panic!("indices array length is not modulo 3.") }
-    
-        // generate and bind EBO, then copy index data into element buffer
+
         gl::GenBuffers(1, ebo as *mut u32);
         gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, *ebo);
         gl::BufferData(
@@ -129,6 +126,7 @@ impl VAO {
         );
     }
 
+    // Set vertex attr pointers (make sure this aligns with buffer_data)
     unsafe fn set_vertex_attrs(vao: u32, vertex_attrs: Vec<VertexAttr>) {
         gl::BindVertexArray(vao);
 

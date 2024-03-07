@@ -1,4 +1,4 @@
-use image::io::Reader as ImageReader;
+use image::{flat, io::Reader as ImageReader, ColorType, DynamicImage};
 use gl::types::*;
 
 /// Wrapper struct for a texture.
@@ -16,24 +16,24 @@ impl Texture {
             texture_unit = u32::MAX;  // invalid state
         }
 
-        // gen and bind a texture object
+        // gen and bind a new texture
         let mut texture = 0;
         gl::GenTextures(1, &mut texture as *mut u32);
         gl::BindTexture(gl::TEXTURE_2D, texture);
 
         // set options for the texture
-        Texture::set_options(texture);
+        Texture::set_options();
 
         // load texture image data and copy to currently bound texture
-        let (width, height, flattened_pixels) = Texture::load_image_data_rgb(filename);
+        let (channels, width, height, flattened_pixels) = Texture::load_image_data(filename);
         gl::TexImage2D(
             gl::TEXTURE_2D, 
             0, 
-            gl::RGB as i32, // ??
+            channels as i32, // ??
             width as i32, 
             height as i32, 
             0, 
-            gl::RGB,
+            channels,
             gl::UNSIGNED_BYTE,
             flattened_pixels.as_ptr() as *const GLvoid
         );
@@ -47,19 +47,21 @@ impl Texture {
 
 // Internal implementations
 impl Texture {
-    fn load_image_data_rgb(filename: &str) -> (u32, u32, Vec<u8>) {
+    fn load_image_data(filename: &str) -> (u32, u32, u32, Vec<u8>) {
         let img = ImageReader::open(&format!("assets/textures/{filename}"))
             .expect(&format!("Couldn't load texture image: {filename}"))
             .decode()
-            .expect(&format!("Couldn't decode texture image: {filename}"))
-            .to_rgb8();
+            .expect(&format!("Couldn't decode texture image: {filename}"));
 
-        let (width, height) = img.dimensions();
+        let channels = match img.color() {
+            ColorType::Rgb8 => gl::RGB,
+            ColorType::Rgba8 => gl::RGBA,
+            other => panic!("Unsupported ColorType when loading texture image {filename}: {other:?}"),
+        };
+        let (width, height) = (img.width(), img.height());
+        let flattened_pixels: Vec<u8> = img.into_bytes();
 
-        // openGL expects a flat array of u8, so we must flatten before returning
-        let flattened_pixels: Vec<u8> = img.pixels().map(|p| p.0).flatten().collect();
-
-        (width, height, flattened_pixels)
+        (channels, width, height, flattened_pixels)
     }
 
     unsafe fn activate_texture_unit(texture_unit: GLenum) -> bool {
@@ -73,7 +75,7 @@ impl Texture {
         true
     }
 
-    unsafe fn set_options(texture: u32) {
+    unsafe fn set_options() {
         // TODO: make this configurable
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);	
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
