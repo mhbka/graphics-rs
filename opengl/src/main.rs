@@ -48,6 +48,7 @@ fn main() {
     // Initialize and use shader + add textures as uniforms
     let mut shader_program = unsafe { Shader::new("test") };
     unsafe {
+        // Note: uniform value must equal texture unit's number (ie TEXTURE15 => UniformType::Int1(15))
         shader_program.add_uniform(Uniform {name: "texture1".to_owned(), uniform_type: UniformType::Int1(1)});
         shader_program.add_uniform(Uniform {name: "texture2".to_owned(), uniform_type: UniformType::Int1(2)});
     }

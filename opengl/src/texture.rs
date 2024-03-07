@@ -51,7 +51,8 @@ impl Texture {
         let img = ImageReader::open(&format!("assets/textures/{filename}"))
             .expect(&format!("Couldn't load texture image: {filename}"))
             .decode()
-            .expect(&format!("Couldn't decode texture image: {filename}"));
+            .expect(&format!("Couldn't decode texture image: {filename}"))
+            .flipv(); // OpenGL expects y=0 to be at the bottom of image, but images usually have y=0 at the top
 
         let channels = match img.color() {
             ColorType::Rgb8 => gl::RGB,
