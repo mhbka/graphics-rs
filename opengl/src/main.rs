@@ -3,19 +3,23 @@ mod shader;
 mod vao;
 mod texture;
 
-use gl::types::GLvoid;
+use glam::*;
+use gl::types::*;
 use glfw::{Action, Context, Key, WindowEvent};
 use shader::{Shader, Uniform, UniformType};
 use vao::{VAO, VertexAttr};
 use texture::Texture;
 use std::env;
+use std::f32::consts::PI;
+
+const RAD: f32 = PI/180.0;
 
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
     let use_old_ver = true;
 
-    // Initialize GLFW window and make current + load functions into `gl`
+    // Initialize GLFW + load functions into `gl`
     let (mut glfw, mut window, mut events) = glfw_init::init(use_old_ver);
 
     // vertex data
@@ -27,6 +31,7 @@ fn main() {
         -0.5,  0.5, 0.0,  1.0, 1.0, 0.0,   0.0, 1.0    // top left 
     ];
 
+    // index data
     let index_data: Vec<u32> = vec![
         0, 1, 3,
         1, 2, 3
@@ -49,10 +54,10 @@ fn main() {
     // Initialize and use shader + add textures as uniforms
     let mut shader_program = unsafe { Shader::new("test") };
     unsafe {
-        // Note: uniform value must equal texture unit's number (ie TEXTURE15 => UniformType::Int1(15))
         shader_program.set_uniform(Uniform::new("texture1".to_owned(), UniformType::Int1(1)));
         shader_program.set_uniform(Uniform::new("texture2".to_owned(), UniformType::Int1(2)));
         shader_program.set_uniform(Uniform::new("mix_amount".to_owned(), UniformType::Float1(mix_amount)));
+       
     }
 
     // Check for error before main loop (also using this for checking error during loop)
@@ -70,6 +75,10 @@ fn main() {
             // Set BG color
             gl::ClearColor(0.9, 0.3, 0.3, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT); 
+
+            // Modify and set transform as uniform
+            let transform = Mat4::from_rotation_z(glfw.get_time() as f32) * Mat4::from_scale(Vec3::new(0.5, 1.2, 0.5));
+            shader_program.set_uniform(Uniform::new("transform".to_owned(), UniformType::Matrix4(transform)));
 
             // Draw triangles
             gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, 0 as *const GLvoid);

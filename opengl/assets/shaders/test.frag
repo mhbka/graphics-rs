@@ -6,7 +6,7 @@
 
     uniform sampler2D texture1;
     uniform sampler2D texture2;
-    uniform float mix_amount;
+    uniform float mix_amount;uniform mat4 transform;
 
     void main()
     {
