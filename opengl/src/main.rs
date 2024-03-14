@@ -74,7 +74,7 @@ fn main() {
                 let angle = glfw.get_time() as f32;
                 let model = Mat4::from_rotation_x(angle) * Mat4::from_rotation_y(angle);
                 let view = Mat4::from_translation(*pos) * Mat4::from_translation(Vec3::new(0.0, 0.0, -10.0));
-                let projection = Mat4::perspective_rh_gl(fov, 800.0/600.0, 0.1, 100.0);
+                let projection = Mat4::perspective_rh_gl(fov * RAD, 800.0/600.0, 0.1, 100.0);
                 
                 let transform = projection * view * model;
 
