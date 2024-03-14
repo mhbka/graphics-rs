@@ -20,31 +20,70 @@ fn main() {
     let use_old_ver = true;
 
     // Initialize GLFW + load functions into `gl`
-    let (mut glfw, mut window, mut events) = glfw_init::init(use_old_ver);
+    let (mut glfw, mut window, events) = glfw_init::init(use_old_ver);
 
     // vertex data
     let vertex_data: Vec<f32> = vec![
-        // positions      // colors        // texture coords
-        0.5,  0.5, 0.0,   1.0, 0.0, 0.0,   1.0, 1.0,   // top right
-        0.5, -0.5, 0.0,   0.0, 1.0, 0.0,   1.0, 0.0,   // bottom right
-        -0.5, -0.5, 0.0,  0.0, 0.0, 1.0,   0.0, 0.0,   // bottom left
-        -0.5,  0.5, 0.0,  1.0, 1.0, 0.0,   0.0, 1.0    // top left 
+        -0.5, -0.5, -0.5,  0.0, 0.0,
+        0.5, -0.5, -0.5,  1.0, 0.0,
+        0.5,  0.5, -0.5,  1.0, 1.0,
+        0.5,  0.5, -0.5,  1.0, 1.0,
+        -0.5,  0.5, -0.5,  0.0, 1.0,
+        -0.5, -0.5, -0.5,  0.0, 0.0,
+
+        -0.5, -0.5,  0.5,  0.0, 0.0,
+        0.5, -0.5,  0.5,  1.0, 0.0,
+        0.5,  0.5,  0.5,  1.0, 1.0,
+        0.5,  0.5,  0.5,  1.0, 1.0,
+        -0.5,  0.5,  0.5,  0.0, 1.0,
+        -0.5, -0.5,  0.5,  0.0, 0.0,
+
+        -0.5,  0.5,  0.5,  1.0, 0.0,
+        -0.5,  0.5, -0.5,  1.0, 1.0,
+        -0.5, -0.5, -0.5,  0.0, 1.0,
+        -0.5, -0.5, -0.5,  0.0, 1.0,
+        -0.5, -0.5,  0.5,  0.0, 0.0,
+        -0.5,  0.5,  0.5,  1.0, 0.0,
+
+        0.5,  0.5,  0.5,  1.0, 0.0,
+        0.5,  0.5, -0.5,  1.0, 1.0,
+        0.5, -0.5, -0.5,  0.0, 1.0,
+        0.5, -0.5, -0.5,  0.0, 1.0,
+        0.5, -0.5,  0.5,  0.0, 0.0,
+        0.5,  0.5,  0.5,  1.0, 0.0,
+
+        -0.5, -0.5, -0.5,  0.0, 1.0,
+        0.5, -0.5, -0.5,  1.0, 1.0,
+        0.5, -0.5,  0.5,  1.0, 0.0,
+        0.5, -0.5,  0.5,  1.0, 0.0,
+        -0.5, -0.5,  0.5,  0.0, 0.0,
+        -0.5, -0.5, -0.5,  0.0, 1.0,
+
+        -0.5,  0.5, -0.5,  0.0, 1.0,
+        0.5,  0.5, -0.5,  1.0, 1.0,
+        0.5,  0.5,  0.5,  1.0, 0.0,
+        0.5,  0.5,  0.5,  1.0, 0.0,
+        -0.5,  0.5,  0.5,  0.0, 0.0,
+        -0.5,  0.5, -0.5,  0.0, 1.0
     ];
 
     // index data
+    /* 
     let index_data: Vec<u32> = vec![
         0, 1, 3,
         1, 2, 3
     ];
+    */
     
     // Initialize VAO
     let vertex_attrs = vec![
         VertexAttr::new("Position".to_owned(), 3), 
-        VertexAttr::new("Color".to_owned(), 3),
+        VertexAttr::new("Color".to_owned(), 0), // lol
         VertexAttr::new("Texture Coords".to_owned(), 2)
-        ];
-    let vao = unsafe { VAO::new(vertex_data, Some(index_data), vertex_attrs) };
-    // unsafe { vao.check_binding() };
+    ];
+    let vao = unsafe { VAO::new(vertex_data, None, vertex_attrs) };
+    unsafe { gl::Enable(gl::DEPTH_TEST) };
+    unsafe { vao.check_binding() };
 
     // Initialize textures to texture units + amount to mix them
     let texture1 = unsafe { Texture::new("wall.jpg", gl::TEXTURE1) };
@@ -57,7 +96,6 @@ fn main() {
         shader_program.set_uniform(Uniform::new("texture1".to_owned(), UniformType::Int1(1)));
         shader_program.set_uniform(Uniform::new("texture2".to_owned(), UniformType::Int1(2)));
         shader_program.set_uniform(Uniform::new("mix_amount".to_owned(), UniformType::Float1(mix_amount)));
-       
     }
 
     // Check for error before main loop (also using this for checking error during loop)
@@ -65,23 +103,30 @@ fn main() {
     if cur_error != 0 { panic!("error during init: {cur_error} ");} 
     else { println!("note: initialization succeeded; going to event loop"); }
 
+
     //
     // MAIN LOOP - until window is closed
-    // 
+    //
     while !window.should_close() {
         window.swap_buffers();
 
         unsafe { 
             // Set BG color
             gl::ClearColor(0.9, 0.3, 0.3, 1.0);
-            gl::Clear(gl::COLOR_BUFFER_BIT); 
+            gl::Clear(gl::COLOR_BUFFER_BIT);
+            gl::Clear(gl::DEPTH_BUFFER_BIT);
 
             // Modify and set transform as uniform
-            let transform = Mat4::from_rotation_z(glfw.get_time() as f32) * Mat4::from_scale(Vec3::new(0.5, 1.2, 0.5));
+            let model = Mat4::from_rotation_x(glfw.get_time() as f32) * Mat4::from_rotation_y(glfw.get_time() as f32);
+            let view = Mat4::from_translation(Vec3::new(0.0, 0.0, -5.0));
+            let projection = Mat4::perspective_rh(50.0, 800.0/600.0, 0.1, 100.0);
+            
+            let transform = projection * view * model;
+
             shader_program.set_uniform(Uniform::new("transform".to_owned(), UniformType::Matrix4(transform)));
 
             // Draw triangles
-            gl::DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, 0 as *const GLvoid);
+            gl::DrawArrays(gl::TRIANGLES, 0, 36);
 
             // Check for any new errors
             let error = gl::GetError();

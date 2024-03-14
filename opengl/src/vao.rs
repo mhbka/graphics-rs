@@ -1,4 +1,4 @@
-use std::{mem::{size_of, size_of_val}, ptr::null};
+use std::mem::{size_of, size_of_val};
 use gl::types::*;
 
 
@@ -77,11 +77,18 @@ impl VAO {
         gl::BindVertexArray(self.vao);
 
         let mut bound_ebo = 0;
-        gl::BindBuffer(gl::ARRAY_BUFFER, self.ebo.unwrap());
-        gl::GetVertexArrayiv(self.vao, gl::ELEMENT_ARRAY_BUFFER_BINDING, &mut bound_ebo as *mut i32);
-        if bound_ebo == 0 {println!("ebo not bound")} 
-        else {println!("ebo bound")}
-
+        if self.ebo == None { 
+            println!("ebo not used here");
+        } else {
+            gl::BindBuffer(gl::ARRAY_BUFFER, self.ebo.unwrap());
+            gl::GetVertexArrayiv(self.vao, gl::ELEMENT_ARRAY_BUFFER_BINDING, &mut bound_ebo as *mut i32);
+            if bound_ebo == 0 { 
+                println!("ebo not bound");
+            } else {
+                println!("ebo bound");
+            }
+        }
+        
         let mut max_attribs: i32 = 0;
         gl::GetIntegerv(gl::MAX_VERTEX_ATTRIBS, &mut max_attribs as *mut i32);
         
@@ -140,6 +147,7 @@ impl VAO {
         // loop and set vertex attrib pointers for each vertex attribute, then enable it
         let mut cur_stride: i32 = 0;
         for (index, attr) in vertex_attrs.iter().enumerate() {
+            if attr.length <= 0 { continue; }
             gl::VertexAttribPointer(
                 index as u32, 
                 attr.length as i32, 
@@ -150,6 +158,9 @@ impl VAO {
             );
             gl::EnableVertexAttribArray(index as u32);
             cur_stride += (attr.length * size_of::<f32>()) as i32;
+
+            let err = gl::GetError();
+            if err != 0 { println!("error during '{}' vertex attr assignment: {}", attr.name, err); }
         }
     }
 }
