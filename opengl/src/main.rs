@@ -2,6 +2,7 @@ mod glfw_init;
 mod shader;
 mod vao;
 mod texture;
+mod data;
 
 use glam::*;
 use gl::types::*;
@@ -22,58 +23,9 @@ fn main() {
     // Initialize GLFW + load functions into `gl`
     let (mut glfw, mut window, events) = glfw_init::init(use_old_ver);
 
-    // vertex data
-    let vertex_data: Vec<f32> = vec![
-        -0.5, -0.5, -0.5,  0.0, 0.0,
-        0.5, -0.5, -0.5,  1.0, 0.0,
-        0.5,  0.5, -0.5,  1.0, 1.0,
-        0.5,  0.5, -0.5,  1.0, 1.0,
-        -0.5,  0.5, -0.5,  0.0, 1.0,
-        -0.5, -0.5, -0.5,  0.0, 0.0,
-
-        -0.5, -0.5,  0.5,  0.0, 0.0,
-        0.5, -0.5,  0.5,  1.0, 0.0,
-        0.5,  0.5,  0.5,  1.0, 1.0,
-        0.5,  0.5,  0.5,  1.0, 1.0,
-        -0.5,  0.5,  0.5,  0.0, 1.0,
-        -0.5, -0.5,  0.5,  0.0, 0.0,
-
-        -0.5,  0.5,  0.5,  1.0, 0.0,
-        -0.5,  0.5, -0.5,  1.0, 1.0,
-        -0.5, -0.5, -0.5,  0.0, 1.0,
-        -0.5, -0.5, -0.5,  0.0, 1.0,
-        -0.5, -0.5,  0.5,  0.0, 0.0,
-        -0.5,  0.5,  0.5,  1.0, 0.0,
-
-        0.5,  0.5,  0.5,  1.0, 0.0,
-        0.5,  0.5, -0.5,  1.0, 1.0,
-        0.5, -0.5, -0.5,  0.0, 1.0,
-        0.5, -0.5, -0.5,  0.0, 1.0,
-        0.5, -0.5,  0.5,  0.0, 0.0,
-        0.5,  0.5,  0.5,  1.0, 0.0,
-
-        -0.5, -0.5, -0.5,  0.0, 1.0,
-        0.5, -0.5, -0.5,  1.0, 1.0,
-        0.5, -0.5,  0.5,  1.0, 0.0,
-        0.5, -0.5,  0.5,  1.0, 0.0,
-        -0.5, -0.5,  0.5,  0.0, 0.0,
-        -0.5, -0.5, -0.5,  0.0, 1.0,
-
-        -0.5,  0.5, -0.5,  0.0, 1.0,
-        0.5,  0.5, -0.5,  1.0, 1.0,
-        0.5,  0.5,  0.5,  1.0, 0.0,
-        0.5,  0.5,  0.5,  1.0, 0.0,
-        -0.5,  0.5,  0.5,  0.0, 0.0,
-        -0.5,  0.5, -0.5,  0.0, 1.0
-    ];
-
-    // index data
-    /* 
-    let index_data: Vec<u32> = vec![
-        0, 1, 3,
-        1, 2, 3
-    ];
-    */
+    // data
+    let vertex_data: Vec<f32> = Vec::from(data::vertex_data);
+    let pos_data = Vec::from(data::cube_positions);
     
     // Initialize VAO
     let vertex_attrs = vec![
@@ -107,6 +59,7 @@ fn main() {
     //
     // MAIN LOOP - until window is closed
     //
+    let mut fov = 45.0;
     while !window.should_close() {
         window.swap_buffers();
 
@@ -116,17 +69,20 @@ fn main() {
             gl::Clear(gl::COLOR_BUFFER_BIT);
             gl::Clear(gl::DEPTH_BUFFER_BIT);
 
-            // Modify and set transform as uniform
-            let model = Mat4::from_rotation_x(glfw.get_time() as f32) * Mat4::from_rotation_y(glfw.get_time() as f32);
-            let view = Mat4::from_translation(Vec3::new(0.0, 0.0, -5.0));
-            let projection = Mat4::perspective_rh(50.0, 800.0/600.0, 0.1, 100.0);
+            // Modify and set transform as uniform for each cube, then draw
+            for (i, pos) in pos_data.iter().enumerate() {
+                let angle = glfw.get_time() as f32;
+                let model = Mat4::from_rotation_x(angle) * Mat4::from_rotation_y(angle);
+                let view = Mat4::from_translation(*pos) * Mat4::from_translation(Vec3::new(0.0, 0.0, -10.0));
+                let projection = Mat4::perspective_rh_gl(fov, 800.0/600.0, 0.1, 100.0);
+                
+                let transform = projection * view * model;
+
+                shader_program.set_uniform(Uniform::new("transform".to_owned(), UniformType::Matrix4(transform)));
+
+                gl::DrawArrays(gl::TRIANGLES, 0, 36);
+            }
             
-            let transform = projection * view * model;
-
-            shader_program.set_uniform(Uniform::new("transform".to_owned(), UniformType::Matrix4(transform)));
-
-            // Draw triangles
-            gl::DrawArrays(gl::TRIANGLES, 0, 36);
 
             // Check for any new errors
             let error = gl::GetError();
@@ -139,22 +95,18 @@ fn main() {
         // Poll for and process events
         glfw.poll_events();
         for (_, event) in glfw::flush_messages(&events) {
-            println!("{:?}", event);
+            //println!("{:?}", event);
             match event {
                 WindowEvent::Key(Key::Escape, _, Action::Press, _) => {
                     window.set_should_close(true)
                 },
-                WindowEvent::Key(Key::Up, _, Action::Press, _) => {
-                    mix_amount += 0.1;
-                    unsafe {
-                        shader_program.set_uniform(Uniform::new("mix_amount".to_owned(), UniformType::Float1(mix_amount)));
-                    }
+                WindowEvent::Key(Key::Up, _, Action::Press, _) | WindowEvent::Key(Key::Up, _, Action::Repeat, _)=> {
+                    fov += 0.05;
+                    println!("fov up: {fov}");
                 },
-                WindowEvent::Key(Key::Down, _, Action::Press, _) => {
-                    mix_amount -= 0.1;
-                    unsafe {
-                        shader_program.set_uniform(Uniform::new("mix_amount".to_owned(), UniformType::Float1(mix_amount)));
-                    }
+                WindowEvent::Key(Key::Down, _, Action::Press, _) | WindowEvent::Key(Key::Down, _, Action::Repeat, _) => {
+                    fov -= 0.05;
+                    println!("fov down: {fov}");
                 },
                 _ => {},
             }
