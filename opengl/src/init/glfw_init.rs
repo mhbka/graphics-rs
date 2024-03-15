@@ -1,10 +1,11 @@
 use glfw::{Context, Glfw, GlfwReceiver, OpenGlProfileHint, PWindow, WindowEvent, WindowHint};
 use glfw::fail_on_errors;
+use crate::types::GLFWState;
 
 
 /// Initializes GLFW context (including loading functions into `gl`),
 /// and returns necessary objects.
-pub fn init(width: u32, height: u32, use_old_ver: bool) -> (Glfw, PWindow, GlfwReceiver<(f64, WindowEvent)>) {
+pub fn init(width: u32, height: u32, use_old_ver: bool) -> GLFWState {
 
     // init glfw and set window hints as found in tutorial
     let mut glfw = glfw::init(fail_on_errors!()).unwrap();    
@@ -37,6 +38,5 @@ pub fn init(width: u32, height: u32, use_old_ver: bool) -> (Glfw, PWindow, GlfwR
 
     }
 
-    // Return objects used in main loop
-    (glfw, window, events)
+    GLFWState::new(glfw, window, events)
 }

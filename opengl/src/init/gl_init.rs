@@ -5,11 +5,12 @@ use crate::{
     Texture,
     Shader,
     Uniform,
-    UniformType
+    UniformType,
+    types::GraphicsState
 };
 
 // Initializes OpenGL context.
-pub unsafe fn init() -> (VAO, Shader) {
+pub unsafe fn init() -> GraphicsState {
     // load data
     let vertex_data: Vec<f32> = Vec::from(data::VERTEX_DATA);
 
@@ -44,5 +45,5 @@ pub unsafe fn init() -> (VAO, Shader) {
         println!("note: initialization success"); 
     }
 
-    (vao, shader_program)
+    GraphicsState::new(vao, shader_program)
 }
