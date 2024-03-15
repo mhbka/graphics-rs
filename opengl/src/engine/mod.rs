@@ -1,16 +1,33 @@
+mod movement;
+mod events;
+mod transform;
+
 use glam::*;
 use glfw::{Window, WindowEvent, Key, Action, Context};
 use crate::{
-    data::{self, CUBE_POSITIONS}, types::{GLFWState, GraphicsState}, Uniform, UniformType
+    data::CUBE_POSITIONS, 
+    types::{GLFWState, GraphicsState}, 
+    Uniform, 
+    UniformType
 };
+use self::{events::handle_events, transform::{get_transform, Camera}};
+
+
 
 // The main render/event loop of the program
 pub fn run(mut graphics_state: GraphicsState, mut glfw_state: GLFWState) {
-    let pos_data = Vec::from(data::CUBE_POSITIONS);
-    let mut cameraPos = Vec3::new(0.0, 0.0, -3.0);
-    let mut cameraTarget = Vec3::new(0.0, 0.0, 0.0);
+    let pos_data = Vec::from(CUBE_POSITIONS);
+
+    let mut camera = Camera::new(
+        Vec3::new(0.0, 0.0, -3.0), 
+        Vec3::new(0.0, 0.0, 0.0),
+        Vec3::new(0.0, 1.0, 0.0)
+    );
+
     let mut fov = 45.0;
+
     let mut cur_error = 0;
+
     while !glfw_state.window.should_close() {
         glfw_state.window.swap_buffers();
 
@@ -18,16 +35,16 @@ pub fn run(mut graphics_state: GraphicsState, mut glfw_state: GLFWState) {
             // Set BG color
             gl::ClearColor(0.9, 0.3, 0.3, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
+            
             gl::Clear(gl::DEPTH_BUFFER_BIT);
 
-            // Modify and set transform as uniform for each cube, then draw
-            for (i, pos) in pos_data.iter().enumerate() {
-                let angle = glfw_state.glfw.get_time() as f32;
-                let model = Mat4::from_rotation_x(angle) * Mat4::from_rotation_y(angle);
-                let view = Mat4::from_translation(*pos) * Mat4::from_translation(cameraPos - cameraTarget);
-                let projection = Mat4::perspective_rh_gl(f32::to_radians(fov), 800.0/600.0, 0.1, 100.0);
+            const RADIUS: f32 = 10.0;
+            camera.location.x = f32::sin(glfw_state.glfw.get_time() as f32) * RADIUS;
+            camera.location.z = f32::cos(glfw_state.glfw.get_time() as f32) * RADIUS;
 
-                let transform = projection * view * model;
+            // Modify and set transform as uniform for each cube, then draw
+            for &pos in pos_data.iter() {
+                let transform = get_transform(&camera, fov, pos);
 
                 graphics_state
                     .shader
@@ -44,30 +61,7 @@ pub fn run(mut graphics_state: GraphicsState, mut glfw_state: GLFWState) {
             }
         };
 
-        // Poll for and process events
-        glfw_state.glfw.poll_events();
-        for (_, event) in glfw::flush_messages(&glfw_state.events) {
-            // println!("{:?}", event);
-            match event {
-                WindowEvent::Key(Key::Escape, _, Action::Press, _) => {
-                    glfw_state.window.set_should_close(true)
-                },
-                WindowEvent::Key(Key::Up, _, Action::Press | Action::Repeat, _) => {
-                    fov += 1.0;
-                    println!("fov up: {fov}");
-                },
-                WindowEvent::Key(Key::Down, _, Action::Press | Action::Repeat, _) => {
-                    fov -= 1.0;
-                    println!("fov down: {fov}");
-                },
-                WindowEvent::CursorEnter(true) => {
-                    println!("wow!");
-                },
-                WindowEvent::Focus(false) => {
-                    println!("bye!");
-                },
-                _ => {},
-            }
-        }
+        // Poll and handle events
+        handle_events(&mut glfw_state);
     }
 }
