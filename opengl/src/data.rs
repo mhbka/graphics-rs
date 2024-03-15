@@ -1,6 +1,6 @@
 use glam::*;
 
-pub const cube_positions: [Vec3; 10] = [
+pub const CUBE_POSITIONS: [Vec3; 10] = [
     Vec3::new( 0.0,  0.0,  0.0), 
     Vec3::new( 2.0,  5.0, -15.0), 
     Vec3::new(-1.5, -2.2, -2.5),  
@@ -13,7 +13,7 @@ pub const cube_positions: [Vec3; 10] = [
     Vec3::new(-1.3,  1.0, -1.5)
 ];
 
-pub const vertex_data: [f32; 180] = [
+pub const VERTEX_DATA: [f32; 180] = [
     -0.5, -0.5, -0.5,  0.0, 0.0,
     0.5, -0.5, -0.5,  1.0, 0.0,
     0.5,  0.5, -0.5,  1.0, 1.0,

@@ -4,7 +4,7 @@ use glfw::fail_on_errors;
 
 /// Initializes GLFW context (including loading functions into `gl`),
 /// and returns necessary objects.
-pub fn init(use_old_ver: bool) -> (Glfw, PWindow, GlfwReceiver<(f64, WindowEvent)>) {
+pub fn init(width: u32, height: u32, use_old_ver: bool) -> (Glfw, PWindow, GlfwReceiver<(f64, WindowEvent)>) {
 
     // init glfw and set window hints as found in tutorial
     let mut glfw = glfw::init(fail_on_errors!()).unwrap();    
@@ -17,13 +17,12 @@ pub fn init(use_old_ver: bool) -> (Glfw, PWindow, GlfwReceiver<(f64, WindowEvent
     glfw.window_hint(WindowHint::OpenGlProfile(OpenGlProfileHint::Core));
 
     // Create a windowed mode window and its OpenGL context
-    let (width, height) = (640, 480);
     let (mut window, events) = glfw.create_window(width, height, "Hello", glfw::WindowMode::Windowed)
         .expect("Failed to create GLFW window.");
 
     // Make the window's context current
     window.make_current();
-    window.set_key_polling(true);
+    window.set_all_polling(true);
     
     // Load window's function pointers into `gl`
     gl::load_with(|s| {window.get_proc_address(s)});
