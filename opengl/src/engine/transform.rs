@@ -2,18 +2,18 @@ use glam::*;
 
 // State of the camera, used for view matrix
 pub struct Camera {
-    pub location: Vec3,
-    pub target: Vec3,
+    pub position: Vec3,
+    pub front: Vec3,
     pub up: Vec3
 }
 
 impl Camera {
-    pub fn new(location: Vec3, target: Vec3, up: Vec3) -> Self {
-        Camera { location, target, up }
+    pub fn new(position: Vec3, front: Vec3, up: Vec3) -> Self {
+        Camera { position, front, up }
     }
 
     pub fn look_at(&self) -> Mat4 {
-        Mat4::look_at_rh(self.location, self.target, self.up)
+        Mat4::look_at_rh(self.position, self.front, self.up)
     }
 }
 
@@ -32,8 +32,6 @@ fn get_model() -> Mat4 {
 }
 
 fn get_view(camera: &Camera, object_position: Vec3) -> Mat4 {
-    // assert_eq!(camera.look_at(), Mat4::from_translation(camera.location - camera.target));
-
     camera.look_at() * Mat4::from_translation(object_position) 
 }
 

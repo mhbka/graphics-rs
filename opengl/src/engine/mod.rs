@@ -12,8 +12,6 @@ use crate::{
 };
 use self::{events::handle_events, transform::{get_transform, Camera}};
 
-
-
 // The main render/event loop of the program
 pub fn run(mut graphics_state: GraphicsState, mut glfw_state: GLFWState) {
     let pos_data = Vec::from(CUBE_POSITIONS);
@@ -32,15 +30,10 @@ pub fn run(mut graphics_state: GraphicsState, mut glfw_state: GLFWState) {
         glfw_state.window.swap_buffers();
 
         unsafe { 
-            // Set BG color
+            // Set BG color + clear color and depth buffer(s)
             gl::ClearColor(0.9, 0.3, 0.3, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
-            
             gl::Clear(gl::DEPTH_BUFFER_BIT);
-
-            const RADIUS: f32 = 10.0;
-            camera.location.x = f32::sin(glfw_state.glfw.get_time() as f32) * RADIUS;
-            camera.location.z = f32::cos(glfw_state.glfw.get_time() as f32) * RADIUS;
 
             // Modify and set transform as uniform for each cube, then draw
             for &pos in pos_data.iter() {

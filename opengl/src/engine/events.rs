@@ -1,9 +1,9 @@
 use glfw::{Action, Key, WindowEvent};
-
 use crate::types::GLFWState;
 
+
+/// Polls and processes GLFW events.
 pub fn handle_events(glfw_state: &mut GLFWState) {
-    // Poll for and process events
     glfw_state.glfw.poll_events();
     for (_, event) in glfw::flush_messages(&glfw_state.events) {
         // println!("{:?}", event);
