@@ -1,7 +1,7 @@
 mod init;
 mod graphics;
 mod data;
-mod main_loop;
+mod engine;
 
 use glam::*;
 use std::env;
