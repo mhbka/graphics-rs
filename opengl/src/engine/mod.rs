@@ -1,8 +1,9 @@
 mod events;
 mod transform;
+mod movement;
 
 use glam::*;
-use glfw::Context;
+use glfw::{Context, CursorMode, Window};
 use crate::{
     data::CUBE_POSITIONS, 
     types::{GLFWState, GraphicsState}, 
@@ -15,19 +16,21 @@ use self::{events::handle_events, transform::{get_transform, Camera}};
 
 // The main render/event loop of the program
 pub fn run(mut graphics_state: GraphicsState, mut glfw_state: GLFWState) {
-    let pos_data = Vec::from(CUBE_POSITIONS);
-
     let mut camera = Camera::new(
         Vec3::new(0.0, 0.0, -3.0), 
         Vec3::new(0.0, 0.0, 1.0),
         Vec3::new(0.0, 1.0, 0.0)
     );
 
+    let mut last_mouse_pos = Vec2::new(0.0, 0.0);
+
+    glfw_state.window.set_cursor_mode(CursorMode::Disabled);
+
+    let pos_data = Vec::from(CUBE_POSITIONS);
+
     let mut cur_error = 0;
 
     let mut last_frame_time = glfw_state.glfw.get_time();
-
-    let mut dist = 0.0;
 
     while !glfw_state.window.should_close() {
         glfw_state
@@ -60,6 +63,6 @@ pub fn run(mut graphics_state: GraphicsState, mut glfw_state: GLFWState) {
         };
 
         // Poll and handle events
-        handle_events(&mut glfw_state, &mut camera, &mut last_frame_time, &mut dist);
+        handle_events(&mut glfw_state, &mut camera, &mut last_frame_time, &mut last_mouse_pos);
     }
 }

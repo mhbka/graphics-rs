@@ -3,14 +3,27 @@ use glam::*;
 // State of the camera, used for view matrix
 #[derive(Debug)]
 pub struct Camera {
+    // vector/location state
     pub position: Vec3,
     pub front: Vec3,
-    pub up: Vec3
+    pub up: Vec3,
+
+    // euler angles
+    pub yaw: f32,
+    pub pitch: f32,
+    pub roll: f32
 }
 
 impl Camera {
     pub fn new(position: Vec3, front: Vec3, up: Vec3) -> Self {
-        Camera { position, front, up }
+        Camera { 
+            position, 
+            front, 
+            up,
+            yaw: -90.0,
+            pitch: 0.0,
+            roll: 0.0
+        }
     }
 
     pub fn look_at(&self) -> Mat4 {
