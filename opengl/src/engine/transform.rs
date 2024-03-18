@@ -1,6 +1,7 @@
 use glam::*;
 
 // State of the camera, used for view matrix
+#[derive(Debug)]
 pub struct Camera {
     pub position: Vec3,
     pub front: Vec3,
@@ -13,7 +14,7 @@ impl Camera {
     }
 
     pub fn look_at(&self) -> Mat4 {
-        Mat4::look_at_rh(self.position, self.front, self.up)
+        Mat4::look_at_rh(self.position, self.position + self.front, self.up)
     }
 }
 
