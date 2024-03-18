@@ -1,36 +1,41 @@
+pub mod camera; // used in main for initialization
+mod callbacks;
 mod events;
 mod transform;
 mod movement;
+
+
+use std::cell::RefCell;
 
 use glam::*;
 use glfw::{Context, CursorMode, Window};
 use crate::{
     data::CUBE_POSITIONS, 
-    types::{GLFWState, GraphicsState}, 
+    types::{GLFWState, GraphicsState, GameState}, 
     Uniform, 
     UniformType
 };
-use self::{events::handle_events, transform::{get_transform, Camera}};
+use self::{
+    events::handle_events, 
+    transform::get_transform,
+    callbacks::set_callbacks
+};
 
 
 
 // The main render/event loop of the program
-pub fn run(mut graphics_state: GraphicsState, mut glfw_state: GLFWState) {
-    let mut camera = Camera::new(
-        Vec3::new(0.0, 0.0, -3.0), 
-        Vec3::new(0.0, 0.0, 1.0),
-        Vec3::new(0.0, 1.0, 0.0)
-    );
+pub fn run(graphics_state: GraphicsState, glfw_state: GLFWState, game_state: GameState) {
 
-    let mut last_mouse_pos = Vec2::new(0.0, 0.0);
-
-    glfw_state.window.set_cursor_mode(CursorMode::Disabled);
+    // Wrap in RefCell as callbacks require static references
+    // Inshallah it will not blow up at runtime
+    let graphics_cell = RefCell::new(graphics_state);
+    let glfw_cell = RefCell::new(glfw_state);
+    let game_cell = RefCell::new(game_state);
+    set_callbacks(graphics_cell, glfw_cell, game_cell);
 
     let pos_data = Vec::from(CUBE_POSITIONS);
 
     let mut cur_error = 0;
-
-    let mut last_frame_time = glfw_state.glfw.get_time();
 
     while !glfw_state.window.should_close() {
         glfw_state
@@ -45,7 +50,7 @@ pub fn run(mut graphics_state: GraphicsState, mut glfw_state: GLFWState) {
 
             // Modify and set transform as uniform for each cube, then draw
             for &pos in pos_data.iter() {
-                let transform = get_transform(&camera, 45.0, pos);
+                let transform = get_transform(&game_state.camera, 45.0, pos);
 
                 graphics_state
                     .shader
@@ -63,6 +68,6 @@ pub fn run(mut graphics_state: GraphicsState, mut glfw_state: GLFWState) {
         };
 
         // Poll and handle events
-        handle_events(&mut glfw_state, &mut camera, &mut last_frame_time, &mut last_mouse_pos);
+        // handle_events(&mut glfw_state, &mut camera, &mut last_frame_time, &mut last_mouse_pos);
     }
 }

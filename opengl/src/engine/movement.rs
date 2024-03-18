@@ -1,7 +1,7 @@
 use glam::*;
 use glfw::{Action, Key, Window};
 use crate::types::GLFWState;
-use super::transform::Camera;
+use super::camera::Camera;
 
 
 // Handles WASD input on each game loop
@@ -35,20 +35,9 @@ pub fn handle_mouse_movement(camera: &mut Camera, cur_pos: Vec2, last_pos: &mut 
     const SENS: f32 = 0.1;
     let x_offset = (cur_pos.x - last_pos.x) * SENS;
     let y_offset = (last_pos.y - cur_pos.y) * SENS; // reversed since y-coords range from bottom to top
+    let offset = Vec2::new(x_offset, y_offset);
     
-    camera.yaw += x_offset;
-    camera.pitch += y_offset;
-
-    if camera.pitch > 89.0 { camera.pitch = 89.0; }
-    else if camera.pitch < -89.0 { camera.pitch = -89.0; }
-
-    // read here for explanation: https://learnopengl.com/Getting-started/Camera
-    let mut direction = Vec3::new(
-        camera.yaw.to_radians().cos() * camera.pitch.to_radians().cos(),
-        camera.pitch.to_radians().sin(),
-        camera.yaw.to_radians().sin() * camera.pitch.to_radians().cos()
-    );
-
-    camera.front = direction.normalize();
+    camera.update_with_mouse_offset(offset);
+    
     *last_pos = cur_pos;
 }

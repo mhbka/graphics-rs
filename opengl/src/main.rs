@@ -5,6 +5,9 @@ mod engine;
 mod types;
 
 use glam::*;
+use glfw::CursorMode;
+use init::game_init;
+use std::cell::RefCell;
 use std::env;
 use std::f32::consts::PI;
 
@@ -21,9 +24,13 @@ fn main() {
     let use_old_ver = true;
 
     let (width, height) = (800, 600);
+
+    // initialize our "global" state
     let mut glfw_state = glfw_init::init(width, height, use_old_ver);
+    let mut graphics_state = unsafe {  gl_init::init() };
+    let mut game_state = game_init::game_init();
 
-    let mut graphics_state = unsafe { gl_init::init() };
+    glfw_state.window.set_cursor_mode(CursorMode::Disabled);
 
-    engine::run(graphics_state, glfw_state);
+    engine::run(graphics_state, glfw_state, game_state);
 }

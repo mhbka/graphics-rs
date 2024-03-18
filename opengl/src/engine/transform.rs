@@ -1,35 +1,6 @@
 use glam::*;
+use super::camera::Camera;
 
-// State of the camera, used for view matrix
-#[derive(Debug)]
-pub struct Camera {
-    // vector/location state
-    pub position: Vec3,
-    pub front: Vec3,
-    pub up: Vec3,
-
-    // euler angles
-    pub yaw: f32,
-    pub pitch: f32,
-    pub roll: f32
-}
-
-impl Camera {
-    pub fn new(position: Vec3, front: Vec3, up: Vec3) -> Self {
-        Camera { 
-            position, 
-            front, 
-            up,
-            yaw: -90.0,
-            pitch: 90.0,
-            roll: 0.0
-        }
-    }
-
-    pub fn look_at(&self) -> Mat4 {
-        Mat4::look_at_rh(self.position, self.position + self.front, self.up)
-    }
-}
 
 /// Obtains the transform matrix used for coordinate manipulation.
 /// Composed of model, view, and projection matrices.

@@ -1,7 +1,10 @@
 use glam::*;
-use glfw::{Action, Key, WindowEvent};
+use glfw::{Action, Key};
 use crate::types::GLFWState;
-use super::{movement::{handle_mouse_movement, handle_wasd_movement}, transform::Camera};
+use super::{
+    movement::{handle_mouse_movement, handle_wasd_movement}, 
+    camera::Camera,
+};
 
 const SPEED: f32 = 2.5;
 
