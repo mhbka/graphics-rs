@@ -5,7 +5,7 @@ mod transform;
 mod movement;
 
 
-use std::cell::RefCell;
+use std::{cell::RefCell, rc::Rc};
 
 use glam::*;
 use glfw::{Context, CursorMode, Window};
@@ -28,9 +28,9 @@ pub fn run(graphics_state: GraphicsState, glfw_state: GLFWState, game_state: Gam
 
     // Wrap in RefCell as callbacks require static references
     // Inshallah it will not blow up at runtime
-    let graphics_cell = RefCell::new(graphics_state);
-    let glfw_cell = RefCell::new(glfw_state);
-    let game_cell = RefCell::new(game_state);
+    let graphics_cell = Rc::new(RefCell::new(graphics_state));
+    let glfw_cell = Rc::new(RefCell::new(glfw_state));
+    let game_cell = Rc::new(RefCell::new(game_state));
     set_callbacks(graphics_cell, glfw_cell, game_cell);
 
     let pos_data = Vec::from(CUBE_POSITIONS);

@@ -1,12 +1,14 @@
-use std::cell::RefCell;
+use std::{cell::RefCell, rc::Rc};
 use glam::*;
 use glfw::{Action, Key, Modifiers, Scancode, Window};
 use crate::types::{GLFWState, GraphicsState, GameState};
 
 
 /// Sets keyboard, mouse and scroll callbacks.
-pub fn set_callbacks(graphics_cell: RefCell<GraphicsState>, glfw_cell: RefCell<GLFWState>, game_cell: RefCell<GameState>) {
-    
+pub fn set_callbacks(
+    graphics_cell: Rc<RefCell<GraphicsState>>, 
+    glfw_cell: Rc<RefCell<GLFWState>>, 
+    game_cell: Rc<RefCell<GameState>>) {
 
     // Mouse callback; modifies Camera state based on change in mouse position.
     glfw_cell
