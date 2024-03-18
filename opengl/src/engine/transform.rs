@@ -21,7 +21,7 @@ impl Camera {
             front, 
             up,
             yaw: -90.0,
-            pitch: 0.0,
+            pitch: 90.0,
             roll: 0.0
         }
     }

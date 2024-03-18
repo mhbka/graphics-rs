@@ -1,13 +1,34 @@
 use glam::*;
-use glfw::Window;
+use glfw::{Action, Key, Window};
 use crate::types::GLFWState;
 use super::transform::Camera;
 
 
 // Handles WASD input on each game loop
-pub fn handle_wasd_movement(glfw_state: GLFWState) {
-    
+pub fn handle_wasd_movement(glfw_state: &mut GLFWState, camera: &mut Camera, camera_speed: f32) {
+    if let (Action::Press | Action::Repeat) = glfw_state.window.get_key(Key::W) {
+        camera.position += camera.front * camera_speed;
+    }
+
+    if let (Action::Press | Action::Repeat) = glfw_state.window.get_key(Key::S) {
+        camera.position -= camera.front * camera_speed;
+    }
+
+    if let (Action::Press | Action::Repeat) = glfw_state.window.get_key(Key::A) {
+        camera.position -= camera.front
+                    .cross(camera.up)
+                    .normalize() 
+                    * camera_speed;
+    }
+
+    if let (Action::Press | Action::Repeat) = glfw_state.window.get_key(Key::D) {
+        camera.position += camera.front
+                    .cross(camera.up)
+                    .normalize() 
+                    * camera_speed;
+    }
 }
+
 
 // Applies mouse movement into camera pitch and yaw.
 pub fn handle_mouse_movement(camera: &mut Camera, cur_pos: Vec2, last_pos: &mut Vec2) {
