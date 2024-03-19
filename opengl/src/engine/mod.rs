@@ -32,7 +32,7 @@ pub fn run(mut graphics_state: GraphicsState, mut glfw_state: GLFWState, mut gam
 
             // Modify and set transform as uniform for each cube, then draw
             for &pos in pos_data.iter() {
-                let transform = get_transform(&game_state.camera, 45.0, pos);
+                let transform = get_transform(&game_state.camera, pos);
 
                 graphics_state
                     .shader

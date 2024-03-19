@@ -3,15 +3,18 @@ use glam::*;
 // State of the camera, used for view matrix
 #[derive(Debug)]
 pub struct Camera {
-    // vector/location state
+    // location/direction
     pub position: Vec3,
     pub front: Vec3,
     pub up: Vec3,
 
-    // euler angles
+    // rotation
     pub yaw: f32,
     pub pitch: f32,
-    pub roll: f32
+    pub roll: f32,
+
+    // projection
+    pub fov: f32
 }
 
 impl Camera {
@@ -22,7 +25,8 @@ impl Camera {
             up,
             yaw: 0.0,
             pitch: 90.0,
-            roll: 0.0
+            roll: 0.0,
+            fov: 45.0
         }
     }
 
