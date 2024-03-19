@@ -1,7 +1,6 @@
 use glam::*;
 use super::camera::Camera;
 
-
 /// Obtains the transform matrix used for coordinate manipulation.
 /// Composed of model, view, and projection matrices.
 pub fn get_transform(camera: &Camera, fov: f32, object_position: Vec3) -> Mat4 {

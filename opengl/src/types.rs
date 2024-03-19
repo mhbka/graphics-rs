@@ -5,6 +5,7 @@ use crate::{engine::camera::Camera, graphics::{
 }};
 
 
+
 // Encapsulates gl state.
 pub struct GraphicsState {
     pub vao: VAO,

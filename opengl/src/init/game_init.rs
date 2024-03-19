@@ -1,5 +1,5 @@
 use crate::types::GameState;
 
-pub fn game_init() -> GameState {
+pub fn init() -> GameState {
     GameState::new()
 }
