@@ -9,7 +9,7 @@ pub fn handle_mouse(glfw_state: &mut GLFWState, game_state: &mut GameState) {
 
     let offset = Vec2::new(
         (xpos - game_state.last_mouse_pos.0) as f32 * SENS,
-        (game_state.last_mouse_pos.1 - ypos) as f32 * SENS
+        (game_state.last_mouse_pos.1 - ypos) as f32 * SENS // something about y-coords being bottom to top??
     );
 
     game_state.camera.update_with_mouse_offset(offset); // Updates camera and thus view matrix during render

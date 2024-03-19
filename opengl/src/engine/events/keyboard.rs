@@ -11,7 +11,6 @@ pub fn handle_keyboard(glfw_state: &mut GLFWState, game_state: &mut GameState) {
     game_state.last_frame_time = cur_frame_time;
 
     handle_wasd_movement(glfw_state, &mut game_state.camera, SPEED * delta_time as f32); 
-
     handle_others(glfw_state);
 }
 

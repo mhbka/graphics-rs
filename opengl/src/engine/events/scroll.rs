@@ -1,9 +1,9 @@
 use glfw::WindowEvent;
-
 use crate::types::GameState;
 
+// Handles scroll for FOV
 pub fn handle_scroll(game_state: &mut GameState, event: WindowEvent) {
-    if let WindowEvent::Scroll(xoffset, yoffset) = event {
+    if let WindowEvent::Scroll(_, yoffset) = event {
         let fov = &mut game_state.camera.fov;
 
         *fov -= yoffset as f32;

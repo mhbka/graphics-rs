@@ -21,5 +21,4 @@ pub fn poll_and_handle_events(glfw_state: &mut GLFWState, game_state: &mut GameS
     for event in glfw::flush_messages(&glfw_state.events) {
         handle_scroll(game_state, event.1);
     }
-    
 }
