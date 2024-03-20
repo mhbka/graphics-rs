@@ -40,7 +40,7 @@ impl VAO {
 
         VAO::init_vbo(buffer_data.as_slice(), &mut vbo);
 
-        // if index_data is present, gen and bind an EBO  + copy index data
+        // if index_data is present, gen and bind an EBO + copy index data
         match &index_data {
             Some(index_data) => VAO::init_ebo(index_data.as_slice(), &mut ebo.as_mut().unwrap()),
             None => ebo = None,

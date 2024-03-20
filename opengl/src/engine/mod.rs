@@ -3,13 +3,8 @@ pub mod transform;
 mod events;
 
 use glfw::Context;
-use crate::{
-    data::CUBE_POSITIONS, global_state::{GLFWState, GameState, GraphicsState}, renderer::Renderer, Uniform, UniformType
-};
-use self::{
-    events::poll_and_handle_events, 
-    transform::get_transform
-};
+use crate::{ global_state::*, renderer::Renderer };
+use self::events::poll_and_handle_events;
 
 
 // The main render/event loop of the program

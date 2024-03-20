@@ -22,6 +22,7 @@ impl Uniform {
 pub enum UniformType {
     Matrix4(Mat4),
     Float4(f32, f32, f32, f32),
+    Float3(f32, f32, f32),
     Float1(f32),
     Int1(i32),
     // TODO: Add other types as they become necessary (including any match statements using Uniform)
@@ -88,6 +89,7 @@ impl Shader {
         match uniform.uniform_type {
             UniformType::Matrix4(mat) => gl::UniformMatrix4fv(uniform_location, 1, gl::FALSE, &mat.to_cols_array() as *const f32),
             UniformType::Float4(x, y, z, w) => gl::Uniform4f(uniform_location, x, y, z, w),
+            UniformType::Float3(x, y, z) => gl::Uniform3f(uniform_location, x, y, z),
             UniformType::Float1(i) => gl::Uniform1f(uniform_location, i),
             UniformType::Int1(i) => gl::Uniform1i(uniform_location, i),
         }

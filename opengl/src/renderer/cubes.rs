@@ -44,7 +44,7 @@ impl Renderer for CubesRenderer {
         let mut mix_amount = 0.2;
 
         // Initialize and use shader + add textures as uniforms
-        let mut shader_program = unsafe { Shader::new("test") };
+        let mut shader_program = unsafe { Shader::new("cubes") };
         unsafe {
             shader_program.set_uniform(Uniform::new("texture1".to_owned(), UniformType::Int1(1)));
             shader_program.set_uniform(Uniform::new("texture2".to_owned(), UniformType::Int1(2)));
@@ -52,7 +52,7 @@ impl Renderer for CubesRenderer {
         }
 
         // Check for error before returning
-        let mut err = gl::GetError();
+        let err = gl::GetError();
         if err != 0 { 
             panic!("error during gl initialization: {err} ");
         } else { 

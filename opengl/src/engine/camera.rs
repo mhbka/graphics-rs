@@ -42,7 +42,7 @@ impl Camera {
         else if self.pitch < -89.0 { self.pitch = -89.0; }
     
         // read here for explanation: https://learnopengl.com/Getting-started/Camera
-        let mut direction = Vec3::new(
+        let direction = Vec3::new(
             self.yaw.to_radians().cos() * self.pitch.to_radians().cos(),
             self.pitch.to_radians().sin(),
             self.yaw.to_radians().sin() * self.pitch.to_radians().cos()
