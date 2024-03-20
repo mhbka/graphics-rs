@@ -42,8 +42,8 @@ impl VAO {
 
         // if index_data is present, gen and bind an EBO  + copy index data
         match &index_data {
-            Some(index_data) => { VAO::init_ebo(index_data.as_slice(), &mut ebo.as_mut().unwrap()) },
-            None => { ebo = None; }
+            Some(index_data) => VAO::init_ebo(index_data.as_slice(), &mut ebo.as_mut().unwrap()),
+            None => ebo = None,
         }
 
         VAO::set_vertex_attrs(vao, vertex_attrs.clone());
@@ -120,8 +120,9 @@ impl VAO {
 
     // generate and bind EBO, then copy index data into element buffer
     unsafe fn init_ebo(index_data: &[u32], ebo: &mut u32) {
-        // each face = 3 vertices, so length must be mod 3
-        if index_data.len()%3 != 0 { panic!("indices array length is not modulo 3.") }
+        if index_data.len()%3 != 0 { 
+            panic!("indices array length is not modulo 3."); // each face has 3 vertices, so length must be mod 3
+        }
 
         gl::GenBuffers(1, ebo as *mut u32);
         gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, *ebo);
@@ -142,12 +143,14 @@ impl VAO {
             .clone()
             .into_iter()
             .fold(0, |a, b| a+b.length);
+
         let vertex_stride = vertex_attrs_size as i32 * size_of::<f32>() as i32;
     
         // loop and set vertex attrib pointers for each vertex attribute, then enable it
         let mut cur_stride: i32 = 0;
         for (index, attr) in vertex_attrs.iter().enumerate() {
             if attr.length <= 0 { continue; }
+
             gl::VertexAttribPointer(
                 index as u32, 
                 attr.length as i32, 
@@ -156,6 +159,7 @@ impl VAO {
                 vertex_stride, 
                 cur_stride as *const GLvoid
             );
+
             gl::EnableVertexAttribArray(index as u32);
             cur_stride += (attr.length * size_of::<f32>()) as i32;
 

@@ -1,5 +1,5 @@
 use glfw::WindowEvent;
-use crate::types::GameState;
+use crate::global_state::GameState;
 
 // Handles scroll for FOV
 pub fn handle_scroll(game_state: &mut GameState, event: WindowEvent) {

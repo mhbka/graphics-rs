@@ -1,4 +1,4 @@
-use crate::types::{GameState, GLFWState};
+use crate::global_state::{GameState, GLFWState};
 use glam::*;
 
 const SENS: f32 = 0.1;

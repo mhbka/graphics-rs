@@ -1,14 +1,14 @@
 mod init;
 mod graphics;
+mod renderer;
 mod data;
 mod engine;
-mod types;
+mod global_state;
 
-use glam::*;
+use data::CUBE_POSITIONS;
 use glfw::CursorMode;
+use renderer::cubes::CubesRenderer;
 use std::env;
-use std::f32::consts::PI;
-
 use crate::init::{gl_init, glfw_init, game_init};
 use crate::graphics::{
     shader::{Shader, Uniform, UniformType},
@@ -22,12 +22,20 @@ fn main() {
     let use_old_ver = true;
 
     let (width, height) = (800, 600);
+
+    let mut renderer = CubesRenderer::new(Vec::from(CUBE_POSITIONS));
+
     let mut glfw_state = glfw_init::init(width, height, use_old_ver);
-    let mut graphics_state = unsafe { gl_init::init() };
+    let mut graphics_state = unsafe { gl_init::init(&mut renderer) };
     let mut game_state = game_init::init();
 
     glfw_state.window.set_all_polling(true);
     glfw_state.window.set_cursor_mode(CursorMode::Disabled);
 
-    engine::run(graphics_state, glfw_state, game_state);
+    engine::run(
+        &mut renderer, 
+        &mut graphics_state, 
+        &mut glfw_state, 
+        &mut game_state
+    );
 }

@@ -5,8 +5,9 @@ mod scroll;
 use keyboard::handle_keyboard;
 use mouse::handle_mouse;
 
-use crate::types::{GLFWState, GameState};
+use crate::global_state::{GLFWState, GameState};
 use self::scroll::handle_scroll;
+
 
 /// Polls and processes GLFW events.
 pub fn poll_and_handle_events(glfw_state: &mut GLFWState, game_state: &mut GameState) {

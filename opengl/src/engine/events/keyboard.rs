@@ -1,5 +1,5 @@
 use glfw::{Action, Key};
-use crate::{engine::camera::Camera, types::{GLFWState, GameState}};
+use crate::{engine::camera::Camera, global_state::{GLFWState, GameState}};
 
 const SPEED: f32 = 2.5;
 
