@@ -1,7 +1,7 @@
 use std::ffi::{CStr, CString};
 use std::ptr::{null, null_mut};
 use std::fs::read_to_string;
-use gl::types;
+use gl::types::*;
 use glam::*;
 
 
@@ -32,7 +32,8 @@ pub enum UniformType {
 /// Wrapper struct for a shader program; encapsulates and tracks/sets shader program state.
 #[derive(Debug)]
 pub struct Shader {
-    name: String,
+    vert_shader_name: String,
+    frag_shader_name: String,
     program: u32,
     vertex_shader: u32,
     fragment_shader: u32,
@@ -42,13 +43,13 @@ pub struct Shader {
 /// Wrapper implementations for OpenGL shaders.
 impl Shader {
     /// Create and use a new shader program, with the specified vertex and fragment shaders.
-    pub unsafe fn new(shader_name: &str) -> Self {
+    pub unsafe fn new(vert_shader_name: &str, frag_shader_name: &str) -> Self {
         let shader_program = gl::CreateProgram();
 
-        let vertex_shader_source = read_to_string(&format!("assets/shaders/{shader_name}.vert"))
-            .expect(&format!("Can't read {shader_name} vertex shader from file."));
-        let fragment_shader_source = read_to_string(&format!("assets/shaders/{shader_name}.frag"))
-            .expect(&format!("Can't read {shader_name} fragment shader from file."));
+        let vertex_shader_source = read_to_string(&format!("assets/shaders/{vert_shader_name}.vert"))
+            .expect(&format!("Can't read {vert_shader_name} vertex shader from file."));
+        let fragment_shader_source = read_to_string(&format!("assets/shaders/{frag_shader_name}.frag"))
+            .expect(&format!("Can't read {frag_shader_name} fragment shader from file."));
 
         let vertex_shader = Shader::compile_shader(vertex_shader_source.as_str(), gl::VERTEX_SHADER);
         let fragment_shader = Shader::compile_shader(fragment_shader_source.as_str(), gl::FRAGMENT_SHADER);
@@ -64,7 +65,8 @@ impl Shader {
         gl::UseProgram(shader_program);
     
         Shader {
-            name: shader_name.to_owned(),
+            vert_shader_name: vert_shader_name.to_owned(),
+            frag_shader_name: frag_shader_name.to_owned(),
             program: shader_program,
             vertex_shader,
             fragment_shader,
@@ -105,7 +107,7 @@ impl Shader {
 
 /// Private implementations
 impl Shader {
-    unsafe fn compile_shader(shader_source: &str, shader_type: types::GLenum) -> u32 {
+    unsafe fn compile_shader(shader_source: &str, shader_type: GLenum) -> u32 {
         let c_str = CString::new(shader_source).unwrap();
         let c_str_ptr: *const *const i8 = &c_str.as_ptr();
         let shader = gl::CreateShader(shader_type);

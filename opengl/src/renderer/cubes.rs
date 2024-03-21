@@ -44,7 +44,7 @@ impl Renderer for CubesRenderer {
         let mut mix_amount = 0.2;
 
         // Initialize and use shader + add textures as uniforms
-        let mut shader_program = unsafe { Shader::new("cubes") };
+        let mut shader_program = unsafe { Shader::new("cubes", "cubes") };
         unsafe {
             shader_program.set_uniform(Uniform::new("texture1".to_owned(), UniformType::Int1(1)));
             shader_program.set_uniform(Uniform::new("texture2".to_owned(), UniformType::Int1(2)));
@@ -59,7 +59,7 @@ impl Renderer for CubesRenderer {
             println!("note: initialization success"); 
         }
 
-        GraphicsState::new(vao, shader_program)
+        GraphicsState::new(vao, vec![shader_program])
     }
 
     
@@ -74,7 +74,7 @@ impl Renderer for CubesRenderer {
             let transform = get_transform(&game_state.camera, pos);
 
             graphics_state
-                .shader
+                .shaders[0]
                 .set_uniform(Uniform::new("transform".to_owned(), UniformType::Matrix4(transform)));
 
             gl::DrawArrays(gl::TRIANGLES, 0, 36);

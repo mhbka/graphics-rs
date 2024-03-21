@@ -8,12 +8,12 @@ use crate::{engine::camera::Camera, graphics::{
 // Encapsulates gl state.
 pub struct GraphicsState {
     pub vao: VAO,
-    pub shader: Shader
+    pub shaders: Vec<Shader>
 }
 
 impl GraphicsState {
-    pub fn new(vao: VAO, shader: Shader) -> Self {
-        GraphicsState { vao, shader }
+    pub fn new(vao: VAO, shaders: Vec<Shader>) -> Self {
+        GraphicsState { vao, shaders }
     }
 }
 
