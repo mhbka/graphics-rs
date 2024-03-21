@@ -28,7 +28,7 @@ fn main() {
     // let mut renderer = CubesRenderer::new(vec![CUBE_POSITIONS]);
 
     let mut renderer = LightingRenderer::new(
-        vec![Vec3::new(1.2, 1.0, 1.0)],
+        vec![Vec3::new(0.0, 0.0, 0.0)],
         Vec3::new(1.2, 1.0, 2.0)
     );
 

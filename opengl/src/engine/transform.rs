@@ -11,6 +11,15 @@ pub fn get_transform(camera: &Camera, object_position: Vec3) -> Mat4 {
     projection * view * model
 }
 
+/// Obtain the projection, view and model matrices as a tuple.
+pub fn get_transform_matrices(camera: &Camera, object_position: Vec3) -> (Mat4, Mat4, Mat4) {
+    let model = get_model();
+    let view = get_view(&camera, object_position);
+    let projection = get_projection(camera.fov);
+
+    (projection, view, model)
+}
+
 fn get_model() -> Mat4 {
     Mat4::IDENTITY
 }

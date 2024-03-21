@@ -1,4 +1,12 @@
-use crate::{data, engine::transform::get_transform, global_state::{GLFWState, GameState, GraphicsState}, graphics::{shader::{Shader, Uniform, UniformType}, vao::{VertexAttr, VAO}}};
+use crate::{
+    data, 
+    engine::transform::{get_transform, get_transform_matrices}, 
+    global_state::*, 
+    graphics::{
+        shader::{Shader, Uniform, UniformType}, 
+        vao::{VertexAttr, VAO}
+    }
+};
 use glam::*;
 use super::Renderer;
 
@@ -15,11 +23,14 @@ impl LightingRenderer {
 
 impl Renderer for LightingRenderer {
     unsafe fn init(&mut self) -> GraphicsState {
-        // load data
-        let vertex_data: Vec<f32> = Vec::from(data::VERTEX_DATA);
+        // load vertex data
+        let vertex_data: Vec<f32> = Vec::from(data::VERTEX_AND_NORMAL_DATA);
 
         // Initialize VAO
-        let vertex_attrs = vec![VertexAttr::new("Position".to_owned(), 3)];
+        let vertex_attrs = vec![
+            VertexAttr::new("Position".to_owned(), 3),
+            VertexAttr::new("Normal".to_owned(), 3),
+        ];
         let vao = VAO::new(vertex_data, None, vertex_attrs);
         gl::Enable(gl::DEPTH_TEST);
         vao.check_binding();
@@ -27,6 +38,8 @@ impl Renderer for LightingRenderer {
         // Shader for lighting
         let mut lighting_shader = unsafe { Shader::new("lighting", "lighting") };
         unsafe {
+                let light_pos_uniform = UniformType::Float3(self.light_pos.x, self.light_pos.y, self.light_pos.z);
+                lighting_shader.set_uniform(Uniform::new("lightPos".to_owned(), light_pos_uniform));
                 lighting_shader.set_uniform(Uniform::new("objectColor".to_owned(), UniformType::Float3(1.0, 0.5, 0.31)));
                 lighting_shader.set_uniform(Uniform::new("lightColor".to_owned(), UniformType::Float3(1.0, 1.0, 1.0)));
         };
@@ -55,21 +68,24 @@ impl Renderer for LightingRenderer {
         // Draw cubes using lighting shader
         graphics_state.shaders[0].use_program();
         for &pos in self.pos_data.iter() {
-            let transform = get_transform(&game_state.camera, pos);
+            let (projection, view, model) = get_transform_matrices(&game_state.camera, pos);
 
-            graphics_state
-                .shaders[0]
-                .set_uniform(Uniform::new("transform".to_owned(), UniformType::Matrix4(transform)));
+            let lighting_shader = &mut graphics_state.shaders[0];
+            
+            lighting_shader.set_uniform(Uniform::new("projection".to_owned(), UniformType::Matrix4(projection)));
+            lighting_shader.set_uniform(Uniform::new("view".to_owned(), UniformType::Matrix4(view)));
+            lighting_shader.set_uniform(Uniform::new("model".to_owned(), UniformType::Matrix4(model)));
+            lighting_shader.set_uniform(Uniform::new("modelNorm".to_owned(), UniformType::Matrix4(model.inverse().transpose())));
 
             gl::DrawArrays(gl::TRIANGLES, 0, 36);
         }
 
-        // Draw light cube
+        // Draw light cube using light shader
         graphics_state.shaders[1].use_program();
         let transform = get_transform(&game_state.camera, self.light_pos);
 
         graphics_state
-            .shaders[0]
+            .shaders[1]
             .set_uniform(Uniform::new("transform".to_owned(), UniformType::Matrix4(transform)));
 
         gl::DrawArrays(gl::TRIANGLES, 0, 36);
