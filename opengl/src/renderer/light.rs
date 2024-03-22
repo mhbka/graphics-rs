@@ -72,6 +72,8 @@ impl Renderer for LightingRenderer {
 
             let lighting_shader = &mut graphics_state.shaders[0];
             
+            let view_pos = game_state.camera.position;
+            lighting_shader.set_uniform(Uniform::new("viewPos".to_owned(), UniformType::Float3(view_pos.x, view_pos.y, view_pos.z)));
             lighting_shader.set_uniform(Uniform::new("projection".to_owned(), UniformType::Matrix4(projection)));
             lighting_shader.set_uniform(Uniform::new("view".to_owned(), UniformType::Matrix4(view)));
             lighting_shader.set_uniform(Uniform::new("model".to_owned(), UniformType::Matrix4(model)));
