@@ -38,8 +38,6 @@ impl Renderer for LightingRenderer {
         // Shader for lighting
         let mut lighting_shader = unsafe { Shader::new("lighting", "lighting") };
         unsafe {
-                let light_pos_uniform = UniformType::Float3(self.light_pos.x, self.light_pos.y, self.light_pos.z);
-                lighting_shader.set_uniform(Uniform::new("lightPos".to_owned(), light_pos_uniform));
                 lighting_shader.set_uniform(Uniform::new("objectColor".to_owned(), UniformType::Float3(1.0, 0.5, 0.31)));
                 lighting_shader.set_uniform(Uniform::new("lightColor".to_owned(), UniformType::Float3(1.0, 1.0, 1.0)));
         };
@@ -65,22 +63,11 @@ impl Renderer for LightingRenderer {
         gl::Clear(gl::COLOR_BUFFER_BIT);
         gl::Clear(gl::DEPTH_BUFFER_BIT);
 
-        // Draw cubes using lighting shader
-        graphics_state.shaders[0].use_program();
-        for &pos in self.pos_data.iter() {
-            let (projection, view, model) = get_transform_matrices(&game_state.camera, pos);
-
-            let lighting_shader = &mut graphics_state.shaders[0];
-            
-            //let view_pos = game_state.camera.position;
-            //lighting_shader.set_uniform(Uniform::new("viewPos".to_owned(), UniformType::Float3(view_pos.x, view_pos.y, view_pos.z)));
-            lighting_shader.set_uniform(Uniform::new("projection".to_owned(), UniformType::Matrix4(projection)));
-            lighting_shader.set_uniform(Uniform::new("view".to_owned(), UniformType::Matrix4(view)));
-            lighting_shader.set_uniform(Uniform::new("model".to_owned(), UniformType::Matrix4(model)));
-            lighting_shader.set_uniform(Uniform::new("normTransform".to_owned(), UniformType::Matrix4((view*model).inverse().transpose())));
-
-            gl::DrawArrays(gl::TRIANGLES, 0, 36);
-        }
+        // Light cube orbiting
+        const r: f32 = 2.0;
+        self.light_pos.x = r * glfw_state.glfw.get_time().cos() as f32;
+        self.light_pos.y = r * glfw_state.glfw.get_time().sin() as f32;
+        self.light_pos.z = r * glfw_state.glfw.get_time().cos() as f32;
 
         // Draw light cube using light shader
         graphics_state.shaders[1].use_program();
@@ -92,7 +79,24 @@ impl Renderer for LightingRenderer {
 
         gl::DrawArrays(gl::TRIANGLES, 0, 36);
 
-        
+        // Draw cubes using lighting shader
+        graphics_state.shaders[0].use_program();
+        for &pos in self.pos_data.iter() {
+            let (projection, view, model) = get_transform_matrices(&game_state.camera, pos);
+
+            let lighting_shader = &mut graphics_state.shaders[0];
+            
+            let light_pos_uniform = UniformType::Float3(self.light_pos.x, self.light_pos.y, self.light_pos.z);
+            lighting_shader.set_uniform(Uniform::new("lightPos".to_owned(), light_pos_uniform));
+
+            lighting_shader.set_uniform(Uniform::new("projection".to_owned(), UniformType::Matrix4(projection)));
+            lighting_shader.set_uniform(Uniform::new("view".to_owned(), UniformType::Matrix4(view)));
+            lighting_shader.set_uniform(Uniform::new("model".to_owned(), UniformType::Matrix4(model)));
+            lighting_shader.set_uniform(Uniform::new("normTransform".to_owned(), UniformType::Matrix4((view*model).inverse().transpose())));
+
+            gl::DrawArrays(gl::TRIANGLES, 0, 36);
+        }
+
         // Check for any new errors
         let error = gl::GetError();
         if error != 0 {
