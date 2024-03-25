@@ -22,7 +22,7 @@ void main()
     // weight the material
     vec3 ambient = vec3(0.1) * material.ambient;
     vec3 diffuse = vec3(0.4) * material.diffuse;
-    vec3 specular = vec3(0.5) * material.specular;
+    vec3 specular = vec3(1.0) * material.specular;
 
     // ambient light
     vec3 ambientLight = ambient * lightColor;
