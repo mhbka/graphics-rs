@@ -38,8 +38,12 @@ impl Renderer for LightingRenderer {
         // Shader for lighting
         let mut lighting_shader = unsafe { Shader::new("lighting", "lighting") };
         unsafe {
-                lighting_shader.set_uniform(Uniform::new("objectColor".to_owned(), UniformType::Float3(1.0, 0.5, 0.31)));
                 lighting_shader.set_uniform(Uniform::new("lightColor".to_owned(), UniformType::Float3(1.0, 1.0, 1.0)));
+
+                lighting_shader.set_uniform(Uniform::new("material.ambient".to_owned(), UniformType::Float3(1.0, 0.5, 0.31)));
+                lighting_shader.set_uniform(Uniform::new("material.diffuse".to_owned(), UniformType::Float3(1.0, 0.5, 0.31)));
+                lighting_shader.set_uniform(Uniform::new("material.specular".to_owned(), UniformType::Float3(0.5, 0.5, 0.5)));
+                lighting_shader.set_uniform(Uniform::new("material.shininess".to_owned(), UniformType::Float1(32.0)));
         };
 
         // Shader for the light itself
