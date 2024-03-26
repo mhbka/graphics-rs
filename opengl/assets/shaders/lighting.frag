@@ -20,7 +20,7 @@ out vec4 FragColor;
 void main()
 {
     // weight the material
-    vec3 ambient = vec3(0.3) * vec3(texture2D(material.diffuse, texCoords));
+    vec3 ambient = vec3(0.1) * vec3(texture2D(material.diffuse, texCoords));
     vec3 diffuse = vec3(0.5) * vec3(texture2D(material.diffuse, texCoords));
     vec3 specular = vec3(texture2D(material.specular, texCoords));
 

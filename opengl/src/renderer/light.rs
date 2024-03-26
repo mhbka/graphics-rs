@@ -73,10 +73,12 @@ impl Renderer for LightingRenderer {
         gl::Clear(gl::DEPTH_BUFFER_BIT);
 
         // Light cube orbiting
+        /* 
         const r: f32 = 2.0;
         self.light_pos.x = r * glfw_state.glfw.get_time().cos() as f32;
         self.light_pos.y = r * glfw_state.glfw.get_time().sin() as f32;
         self.light_pos.z = r * glfw_state.glfw.get_time().cos() as f32;
+        */
 
         // Draw light cube using light shader
         graphics_state.shaders[1].use_program();
