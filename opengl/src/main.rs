@@ -35,10 +35,7 @@ fn main() {
     let mut glfw_state = glfw_init::init(width, height, use_old_ver);
     let mut graphics_state = unsafe { gl_init::init(&mut renderer) };
     let mut game_state = game_init::init();
-
-    glfw_state.window.set_all_polling(true);
-    glfw_state.window.set_cursor_mode(CursorMode::Disabled);
-
+ 
     engine::run(
         &mut renderer, 
         &mut graphics_state, 

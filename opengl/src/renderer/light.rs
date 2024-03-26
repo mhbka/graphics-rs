@@ -3,8 +3,7 @@ use crate::{
     engine::transform::{get_transform, get_transform_matrices}, 
     global_state::*, 
     graphics::{
-        shader::{Shader, Uniform, UniformType}, 
-        vao::{VertexAttr, VAO}
+        shader::{Shader, Uniform, UniformType}, texture::Texture, vao::{VertexAttr, VAO}
     }
 };
 use glam::*;
@@ -24,12 +23,13 @@ impl LightingRenderer {
 impl Renderer for LightingRenderer {
     unsafe fn init(&mut self) -> GraphicsState {
         // load vertex data
-        let vertex_data: Vec<f32> = Vec::from(data::VERTEX_AND_NORMAL_DATA);
+        let vertex_data: Vec<f32> = Vec::from(data::VERTEX_NORM_TEX_DATA);
 
         // Initialize VAO
         let vertex_attrs = vec![
             VertexAttr::new("Position".to_owned(), 3),
             VertexAttr::new("Normal".to_owned(), 3),
+            VertexAttr::new("Tex Coords".to_owned(), 2),
         ];
         let vao = VAO::new(vertex_data, None, vertex_attrs);
         gl::Enable(gl::DEPTH_TEST);
@@ -40,9 +40,14 @@ impl Renderer for LightingRenderer {
         unsafe {
                 lighting_shader.set_uniform(Uniform::new("lightColor".to_owned(), UniformType::Float3(1.0, 1.0, 1.0)));
 
-                lighting_shader.set_uniform(Uniform::new("material.ambient".to_owned(), UniformType::Float3(1.0, 0.5, 0.31)));
-                lighting_shader.set_uniform(Uniform::new("material.diffuse".to_owned(), UniformType::Float3(1.0, 0.5, 0.31)));
-                lighting_shader.set_uniform(Uniform::new("material.specular".to_owned(), UniformType::Float3(0.5, 0.5, 0.5)));
+                // texture
+                Texture::new("container2.png", gl::TEXTURE0);
+                lighting_shader.set_uniform(Uniform::new("material.diffuse".to_owned(), UniformType::Int1(0)));
+
+                // specular texture
+                Texture::new("container2_specular.png", gl::TEXTURE1);
+                lighting_shader.set_uniform(Uniform::new("material.specular".to_owned(), UniformType::Int1(1)));
+
                 lighting_shader.set_uniform(Uniform::new("material.shininess".to_owned(), UniformType::Float1(32.0)));
         };
 

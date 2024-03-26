@@ -1,4 +1,4 @@
-use glfw::{Context, OpenGlProfileHint, WindowHint};
+use glfw::{Context, CursorMode, OpenGlProfileHint, WindowHint};
 use glfw::fail_on_errors;
 use crate::global_state::GLFWState;
 
@@ -21,9 +21,10 @@ pub fn init(width: u32, height: u32, use_old_ver: bool) -> GLFWState {
     let (mut window, events) = glfw.create_window(width, height, "Hello", glfw::WindowMode::Windowed)
         .expect("Failed to create GLFW window.");
 
-    // Make the window's context current and poll for everything
+    // Make the window's context current and poll for everything + disable cursor
     window.make_current();
     window.set_all_polling(true);
+    window.set_cursor_mode(CursorMode::Disabled);
     
     // Load window's function pointers into `gl`
     gl::load_with(|s| {window.get_proc_address(s)});

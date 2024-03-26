@@ -1,18 +1,18 @@
 #version 330 core
 
 struct Material {
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
+    sampler2D diffuse;
+    sampler2D specular;
     float shininess;
 };
+
+in vec2 texCoords;
 
 in vec3 fragPos;
 in vec3 fragNormal;
 in vec3 fragLightPos;
 
 uniform Material material;
-// uniform vec3 objectColor;
 uniform vec3 lightColor;
 
 out vec4 FragColor;
@@ -20,9 +20,9 @@ out vec4 FragColor;
 void main()
 {
     // weight the material
-    vec3 ambient = vec3(0.1) * material.ambient;
-    vec3 diffuse = vec3(0.4) * material.diffuse;
-    vec3 specular = vec3(1.0) * material.specular;
+    vec3 ambient = vec3(0.3) * vec3(texture2D(material.diffuse, texCoords));
+    vec3 diffuse = vec3(0.5) * vec3(texture2D(material.diffuse, texCoords));
+    vec3 specular = vec3(texture2D(material.specular, texCoords));
 
     // ambient light
     vec3 ambientLight = ambient * lightColor;
