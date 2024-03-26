@@ -3,8 +3,8 @@ use super::camera::Camera;
 
 /// Obtains the transform matrix used for coordinate manipulation.
 /// Composed of model, view, and projection matrices.
-pub fn get_transform(camera: &Camera, object_position: Vec3) -> Mat4 {
-    let model = get_model();
+pub fn get_transform(camera: &Camera, object_position: Vec3, scale: Vec3) -> Mat4 {
+    let model = get_model(scale);
     let view = get_view(&camera, object_position);
     let projection = get_projection(camera.fov);
 
@@ -12,16 +12,16 @@ pub fn get_transform(camera: &Camera, object_position: Vec3) -> Mat4 {
 }
 
 /// Obtain the projection, view and model matrices as a tuple.
-pub fn get_transform_matrices(camera: &Camera, object_position: Vec3) -> (Mat4, Mat4, Mat4) {
-    let model = get_model();
+pub fn get_transform_matrices(camera: &Camera, object_position: Vec3, scale: Vec3) -> (Mat4, Mat4, Mat4) {
+    let model = get_model(scale);
     let view = get_view(&camera, object_position);
     let projection = get_projection(camera.fov);
 
     (projection, view, model)
 }
 
-fn get_model() -> Mat4 {
-    Mat4::IDENTITY
+fn get_model(scale: Vec3) -> Mat4 {
+    Mat4::from_scale(scale)
 }
 
 fn get_view(camera: &Camera, object_position: Vec3) -> Mat4 {

@@ -5,18 +5,11 @@ mod data;
 mod engine;
 mod global_state;
 
-use data::CUBE_POSITIONS;
 use glam::Vec3;
-use glfw::CursorMode;
 use renderer::cubes::CubesRenderer;
 use renderer::light::LightingRenderer;
 use std::env;
 use crate::init::{gl_init, glfw_init, game_init};
-use crate::graphics::{
-    shader::{Shader, Uniform, UniformType},
-    vao::{VAO, VertexAttr},
-    texture::Texture
-};
 
 
 fn main() {
@@ -28,7 +21,7 @@ fn main() {
     // let mut renderer = CubesRenderer::new(vec![CUBE_POSITIONS]);
 
     let mut renderer = LightingRenderer::new(
-        vec![Vec3::new(0.0, 0.0, 0.0)],
+        Vec::from(data::CUBE_POSITIONS),
         Vec3::new(1.2, 1.0, 2.0)
     );
 

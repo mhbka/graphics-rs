@@ -71,7 +71,7 @@ impl Renderer for CubesRenderer {
 
         // Modify and set transform as uniform for each cube, then draw
         for &pos in self.pos_data.iter() {
-            let transform = get_transform(&game_state.camera, pos);
+            let transform = get_transform(&game_state.camera, pos, Vec3::ONE);
 
             graphics_state
                 .shaders[0]

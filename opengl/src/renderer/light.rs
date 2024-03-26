@@ -80,7 +80,7 @@ impl Renderer for LightingRenderer {
 
         // Draw light cube using light shader
         graphics_state.shaders[1].use_program();
-        let transform = get_transform(&game_state.camera, self.light_pos);
+        let transform = get_transform(&game_state.camera, self.light_pos, 0.1 * Vec3::ONE);
 
         graphics_state
             .shaders[1]
@@ -91,13 +91,15 @@ impl Renderer for LightingRenderer {
         // Draw cubes using lighting shader
         graphics_state.shaders[0].use_program();
         for &pos in self.pos_data.iter() {
-            let (projection, view, model) = get_transform_matrices(&game_state.camera, pos);
+            let (projection, view, model) = get_transform_matrices(&game_state.camera, pos, Vec3::ONE);
 
             let lighting_shader = &mut graphics_state.shaders[0];
             
+            // light position
             let light_pos_uniform = UniformType::Float3(self.light_pos.x, self.light_pos.y, self.light_pos.z);
             lighting_shader.set_uniform(Uniform::new("lightPos".to_owned(), light_pos_uniform));
 
+            // transforms
             lighting_shader.set_uniform(Uniform::new("projection".to_owned(), UniformType::Matrix4(projection)));
             lighting_shader.set_uniform(Uniform::new("view".to_owned(), UniformType::Matrix4(view)));
             lighting_shader.set_uniform(Uniform::new("model".to_owned(), UniformType::Matrix4(model)));
