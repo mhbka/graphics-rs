@@ -6,29 +6,39 @@ struct Material {
     float shininess;
 };
 
-in vec2 texCoords;
+struct Light {
+    vec3 position;
+    float constant;
+    float linear;
+    float quadratic;
+};
 
+in vec2 texCoords;
 in vec3 fragPos;
 in vec3 fragNormal;
-in vec3 fragLightPos;
 
 uniform Material material;
+uniform Light light;
 uniform vec3 lightColor;
 
 out vec4 FragColor;
 
 void main()
 {
-    // weight the material
-    vec3 ambient = vec3(0.1) * vec3(texture2D(material.diffuse, texCoords));
-    vec3 diffuse = vec3(0.5) * vec3(texture2D(material.diffuse, texCoords));
-    vec3 specular = vec3(texture2D(material.specular, texCoords));
+    // calculate light intensity using attenuation
+    float dist = length(fragPos - light.position);
+    float attenuation = 1.0 / (light.constant + (light.linear * dist) + (light.quadratic * dist * dist));
+
+    // weigh the lighting components
+    vec3 ambient = attenuation * 0.1 * vec3(texture2D(material.diffuse, texCoords));
+    vec3 diffuse = attenuation * 0.5 * vec3(texture2D(material.diffuse, texCoords));
+    vec3 specular = attenuation * 1.0 * vec3(texture2D(material.specular, texCoords));
 
     // ambient light
     vec3 ambientLight = ambient * lightColor;
 
     // diffuse light
-    vec3 lightDir = normalize(fragLightPos - fragPos);
+    vec3 lightDir = normalize(light.position - fragPos);
     float diffuseStrength = max(0.0, dot(lightDir, fragNormal));
     vec3 diffuseLight = diffuseStrength * diffuse * lightColor;
 

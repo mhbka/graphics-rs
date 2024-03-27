@@ -44,10 +44,9 @@ impl Renderer for LightingRenderer {
                 Texture::new("container2.png", gl::TEXTURE0);
                 lighting_shader.set_uniform(Uniform::new("material.diffuse".to_owned(), UniformType::Int1(0)));
 
-                // specular texture
+                // specular texture + shininess
                 Texture::new("container2_specular.png", gl::TEXTURE1);
                 lighting_shader.set_uniform(Uniform::new("material.specular".to_owned(), UniformType::Int1(1)));
-
                 lighting_shader.set_uniform(Uniform::new("material.shininess".to_owned(), UniformType::Float1(32.0)));
         };
 
@@ -97,9 +96,13 @@ impl Renderer for LightingRenderer {
 
             let lighting_shader = &mut graphics_state.shaders[0];
             
-            // light position
-            let light_pos_uniform = UniformType::Float3(self.light_pos.x, self.light_pos.y, self.light_pos.z);
-            lighting_shader.set_uniform(Uniform::new("lightPos".to_owned(), light_pos_uniform));
+            // light 
+            let view_light_pos = view.transform_point3(self.light_pos);
+            let light_pos_uniform = UniformType::Float3(view_light_pos.x, view_light_pos.y, view_light_pos.z);
+            lighting_shader.set_uniform(Uniform::new("light.position".to_owned(), light_pos_uniform));
+            lighting_shader.set_uniform(Uniform::new("light.constant".to_owned(), UniformType::Float1(glfw_state.glfw.get_time().sin().abs() as f32)));
+            lighting_shader.set_uniform(Uniform::new("light.linear".to_owned(), UniformType::Float1(0.35)));
+            lighting_shader.set_uniform(Uniform::new("light.quadratic".to_owned(), UniformType::Float1(0.44)));
 
             // transforms
             lighting_shader.set_uniform(Uniform::new("projection".to_owned(), UniformType::Matrix4(projection)));
