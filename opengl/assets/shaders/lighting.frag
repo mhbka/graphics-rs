@@ -45,7 +45,7 @@ void main()
 
         // fade out lighting after innerCutOff radius, up to outerCutOff
         float epsilon = light.innerCutOffCos - light.outerCutOffCos;   
-        float intensity = clamp((theta - light.outerCutOffCos) / epsilon, 0.0, 1.0);
+        float intensity = smoothstep(0.0, 1.0, (theta - light.outerCutOffCos) / epsilon);
         diffuse *= intensity;
         specular *= intensity;     
 
