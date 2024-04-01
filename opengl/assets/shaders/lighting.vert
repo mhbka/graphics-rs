@@ -20,6 +20,6 @@ void main()
 
     texCoords = aTexCoords;
 
-    fragPos = vec3(view * model * vec4(aPos, 1.0));
+    fragPos = vec3(model * vec4(aPos, 1.0));
     fragNormal = normalize(mat3(normTransform) * aNormal);
 }

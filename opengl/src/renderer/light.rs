@@ -71,15 +71,8 @@ impl Renderer for LightingRenderer {
         gl::Clear(gl::COLOR_BUFFER_BIT);
         gl::Clear(gl::DEPTH_BUFFER_BIT);
 
-        // Light cube orbiting
-        /* 
-        const r: f32 = 2.0;
-        self.light_pos.x = r * glfw_state.glfw.get_time().cos() as f32;
-        self.light_pos.y = r * glfw_state.glfw.get_time().sin() as f32;
-        self.light_pos.z = r * glfw_state.glfw.get_time().cos() as f32;
-        */
-
         // Draw light cube using light shader
+        /* 
         graphics_state.shaders[1].use_program();
         let transform = get_transform(&game_state.camera, self.light_pos, 0.1 * Vec3::ONE);
 
@@ -88,6 +81,7 @@ impl Renderer for LightingRenderer {
             .set_uniform(Uniform::new("transform".to_owned(), UniformType::Matrix4(transform)));
 
         gl::DrawArrays(gl::TRIANGLES, 0, 36);
+        */
 
         // Draw cubes using lighting shader
         graphics_state.shaders[0].use_program();
@@ -97,12 +91,17 @@ impl Renderer for LightingRenderer {
             let lighting_shader = &mut graphics_state.shaders[0];
             
             // light 
-            let view_light_pos = view.transform_point3(self.light_pos);
-            let light_pos_uniform = UniformType::Float3(view_light_pos.x, view_light_pos.y, view_light_pos.z);
+            let light_pos_uniform = UniformType::Float3(game_state.camera.position.x, game_state.camera.position.y, game_state.camera.position.z);
             lighting_shader.set_uniform(Uniform::new("light.position".to_owned(), light_pos_uniform));
-            lighting_shader.set_uniform(Uniform::new("light.constant".to_owned(), UniformType::Float1(glfw_state.glfw.get_time().sin().abs() as f32)));
-            lighting_shader.set_uniform(Uniform::new("light.linear".to_owned(), UniformType::Float1(0.07)));
-            lighting_shader.set_uniform(Uniform::new("light.quadratic".to_owned(), UniformType::Float1(0.017)));
+
+            let light_dir_uniform = UniformType::Float3(game_state.camera.front.x, game_state.camera.front.y, game_state.camera.front.z);
+            lighting_shader.set_uniform(Uniform::new("light.direction".to_owned(), light_dir_uniform));
+
+            lighting_shader.set_uniform(Uniform::new("light.cutOffCos".to_owned(), UniformType::Float1(20.0_f32.to_radians().cos())));
+
+            lighting_shader.set_uniform(Uniform::new("light.constant".to_owned(), UniformType::Float1(1.0)));
+            lighting_shader.set_uniform(Uniform::new("light.linear".to_owned(), UniformType::Float1(0.0022)));
+            lighting_shader.set_uniform(Uniform::new("light.quadratic".to_owned(), UniformType::Float1(0.0019)));
 
             // transforms
             lighting_shader.set_uniform(Uniform::new("projection".to_owned(), UniformType::Matrix4(projection)));
@@ -115,8 +114,6 @@ impl Renderer for LightingRenderer {
 
         // Check for any new errors
         let error = gl::GetError();
-        if error != 0 {
-            println!("error: {error}");
-        }
+        if error != 0 { println!("error: {error}"); }
     }
 }
