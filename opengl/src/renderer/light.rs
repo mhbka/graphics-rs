@@ -101,8 +101,8 @@ impl Renderer for LightingRenderer {
             let light_pos_uniform = UniformType::Float3(view_light_pos.x, view_light_pos.y, view_light_pos.z);
             lighting_shader.set_uniform(Uniform::new("light.position".to_owned(), light_pos_uniform));
             lighting_shader.set_uniform(Uniform::new("light.constant".to_owned(), UniformType::Float1(glfw_state.glfw.get_time().sin().abs() as f32)));
-            lighting_shader.set_uniform(Uniform::new("light.linear".to_owned(), UniformType::Float1(0.35)));
-            lighting_shader.set_uniform(Uniform::new("light.quadratic".to_owned(), UniformType::Float1(0.44)));
+            lighting_shader.set_uniform(Uniform::new("light.linear".to_owned(), UniformType::Float1(0.07)));
+            lighting_shader.set_uniform(Uniform::new("light.quadratic".to_owned(), UniformType::Float1(0.017)));
 
             // transforms
             lighting_shader.set_uniform(Uniform::new("projection".to_owned(), UniformType::Matrix4(projection)));
