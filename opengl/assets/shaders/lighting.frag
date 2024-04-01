@@ -9,7 +9,8 @@ struct Material {
 struct Light {
     vec3 position;
     vec3 direction;
-    float cutOffCos;
+    float innerCutOffCos;
+    float outerCutOffCos;
     float constant;
     float linear;
     float quadratic;
@@ -31,16 +32,24 @@ void main()
     float dist = length(fragPos - light.position);
     float attenuation = 1.0 / (light.constant + (light.linear * dist) + (light.quadratic * dist * dist));
 
+    vec3 ambient = attenuation * 0.5 * vec3(texture2D(material.diffuse, texCoords));
+    vec3 diffuse = attenuation * 1.0 * vec3(texture2D(material.diffuse, texCoords));
+    vec3 specular = attenuation * 2.0 * vec3(texture2D(material.specular, texCoords));
+
     // calculate cosine angle between light->frag and light direction
     vec3 fragToLight = fragPos - light.position;
     float theta = dot(normalize(fragToLight), normalize(light.direction));
 
     // if contained within cutoff, calculate lighting normally
-    if (theta > light.cutOffCos) {
-        vec3 ambient = attenuation * 0.1 * vec3(texture2D(material.diffuse, texCoords));
-        vec3 diffuse = attenuation * 1.0 * vec3(texture2D(material.diffuse, texCoords));
-        vec3 specular = attenuation * 2.0 * vec3(texture2D(material.specular, texCoords));
+    if (theta > light.outerCutOffCos) {
 
+        // fade out lighting after innerCutOff radius, up to outerCutOff
+        float epsilon = light.innerCutOffCos - light.outerCutOffCos;   
+        float intensity = clamp((theta - light.outerCutOffCos) / epsilon, 0.0, 1.0);
+        diffuse *= intensity;
+        specular *= intensity;     
+
+        // 3 lighting types
         vec3 ambientLight = ambient * lightColor;
 
         vec3 lightDir = normalize(light.position - fragPos);

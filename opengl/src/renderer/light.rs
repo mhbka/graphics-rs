@@ -97,7 +97,8 @@ impl Renderer for LightingRenderer {
             let light_dir_uniform = UniformType::Float3(game_state.camera.front.x, game_state.camera.front.y, game_state.camera.front.z);
             lighting_shader.set_uniform(Uniform::new("light.direction".to_owned(), light_dir_uniform));
 
-            lighting_shader.set_uniform(Uniform::new("light.cutOffCos".to_owned(), UniformType::Float1(20.0_f32.to_radians().cos())));
+            lighting_shader.set_uniform(Uniform::new("light.innerCutOffCos".to_owned(), UniformType::Float1(15.0_f32.to_radians().cos())));
+            lighting_shader.set_uniform(Uniform::new("light.outerCutOffCos".to_owned(), UniformType::Float1(20.0_f32.to_radians().cos())));
 
             lighting_shader.set_uniform(Uniform::new("light.constant".to_owned(), UniformType::Float1(1.0)));
             lighting_shader.set_uniform(Uniform::new("light.linear".to_owned(), UniformType::Float1(0.0022)));
