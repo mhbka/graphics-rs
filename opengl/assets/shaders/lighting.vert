@@ -11,6 +11,7 @@ uniform mat4 normTransform;
 out vec2 texCoords;
 
 out vec3 fragPos;
+out vec3 fragViewPos;
 out vec3 fragNormal;
 
 
@@ -21,5 +22,6 @@ void main()
     texCoords = aTexCoords;
 
     fragPos = vec3(model * vec4(aPos, 1.0));
+    fragViewPos = vec3(view * model * vec4(aPos, 1.0));
     fragNormal = normalize(mat3(normTransform) * aNormal);
 }

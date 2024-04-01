@@ -107,7 +107,7 @@ impl Renderer for LightingRenderer {
             lighting_shader.set_uniform(Uniform::new("projection".to_owned(), UniformType::Matrix4(projection)));
             lighting_shader.set_uniform(Uniform::new("view".to_owned(), UniformType::Matrix4(view)));
             lighting_shader.set_uniform(Uniform::new("model".to_owned(), UniformType::Matrix4(model)));
-            lighting_shader.set_uniform(Uniform::new("normTransform".to_owned(), UniformType::Matrix4((view*model).inverse().transpose())));
+            lighting_shader.set_uniform(Uniform::new("normTransform".to_owned(), UniformType::Matrix4((model).inverse().transpose())));
 
             gl::DrawArrays(gl::TRIANGLES, 0, 36);
         }
