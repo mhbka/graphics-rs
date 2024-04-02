@@ -6,7 +6,7 @@ struct Material {
     float shininess;
 };
 
-struct Light {
+struct SpotLight {
     vec3 position;
     vec3 direction;
     float innerCutOffCos;
@@ -21,53 +21,61 @@ in vec3 fragPos;
 in vec3 fragNormal;
 
 uniform Material material;
-uniform Light light;
+uniform SpotLight spotlight;
 uniform vec3 lightColor;
 
 out vec4 FragColor;
 
+vec3 calcSpotLight(SpotLight spotlight);
+
 void main()
 {
+    vec3 outputColor = vec3(0.0);
+
+    outputColor += calcSpotLight(spotlight);
+
+    FragColor = vec4(outputColor, 1.0);
+}
+
+vec3 calcSpotLight(SpotLight spotlight) {
     // calculate light intensity using attenuation
-    float dist = length(fragPos - light.position);
-    float attenuation = 1.0 / (light.constant + (light.linear * dist) + (light.quadratic * dist * dist));
+    float dist = length(fragPos - spotlight.position);
+    float attenuation = 1.0 / (spotlight.constant + (spotlight.linear * dist) + (spotlight.quadratic * dist * dist));
 
     vec3 ambient = attenuation * 0.5 * vec3(texture2D(material.diffuse, texCoords));
     vec3 diffuse = attenuation * 1.0 * vec3(texture2D(material.diffuse, texCoords));
     vec3 specular = attenuation * 2.0 * vec3(texture2D(material.specular, texCoords));
 
     // calculate cosine angle between light->frag and light direction
-    vec3 fragToLight = fragPos - light.position;
-    float theta = dot(normalize(fragToLight), normalize(light.direction));
+    vec3 fragToLight = fragPos - spotlight.position;
+    float theta = dot(normalize(fragToLight), normalize(spotlight.direction));
 
     // if contained within cutoff, calculate lighting normally
-    if (theta > light.outerCutOffCos) {
+    if (theta > spotlight.outerCutOffCos) {
 
         // fade out lighting after innerCutOff radius, up to outerCutOff
-        float epsilon = light.innerCutOffCos - light.outerCutOffCos;   
-        float intensity = smoothstep(0.0, 1.0, (theta - light.outerCutOffCos) / epsilon);
+        float epsilon = spotlight.innerCutOffCos - spotlight.outerCutOffCos;   
+        float intensity = smoothstep(0.0, 1.0, (theta - spotlight.outerCutOffCos) / epsilon);
         diffuse *= intensity;
         specular *= intensity;     
 
         // 3 lighting types
         vec3 ambientLight = ambient * lightColor;
 
-        vec3 lightDir = normalize(light.position - fragPos);
+        vec3 lightDir = normalize(spotlight.position - fragPos);
         float diffuseStrength = max(0.0, dot(lightDir, fragNormal));
         vec3 diffuseLight = diffuseStrength * diffuse * lightColor;
 
-        vec3 viewDir = normalize(light.position - fragPos);
+        vec3 viewDir = normalize(spotlight.position - fragPos);
         vec3 reflectDir = reflect(-lightDir, fragNormal);
         float specularity = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
         vec3 specularLight = specular * specularity * lightColor;
 
-        FragColor = vec4(ambientLight + diffuseLight + specularLight, 1.0);
+        return ambientLight + diffuseLight + specularLight;
     }
 
     // else just use ambient
     else {
-        vec3 ambient = attenuation * 0.1 * vec3(texture2D(material.diffuse, texCoords));
-        vec3 ambientLight = ambient * lightColor;
-        FragColor = vec4(ambientLight, 1.0);
+        return ambient * lightColor;
     } 
 }

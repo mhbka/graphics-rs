@@ -92,17 +92,17 @@ impl Renderer for LightingRenderer {
             
             // light 
             let light_pos_uniform = UniformType::Float3(game_state.camera.position.x, game_state.camera.position.y, game_state.camera.position.z);
-            lighting_shader.set_uniform(Uniform::new("light.position".to_owned(), light_pos_uniform));
+            lighting_shader.set_uniform(Uniform::new("spotlight.position".to_owned(), light_pos_uniform));
 
             let light_dir_uniform = UniformType::Float3(game_state.camera.front.x, game_state.camera.front.y, game_state.camera.front.z);
-            lighting_shader.set_uniform(Uniform::new("light.direction".to_owned(), light_dir_uniform));
+            lighting_shader.set_uniform(Uniform::new("spotlight.direction".to_owned(), light_dir_uniform));
 
-            lighting_shader.set_uniform(Uniform::new("light.innerCutOffCos".to_owned(), UniformType::Float1(1.0_f32.to_radians().cos())));
-            lighting_shader.set_uniform(Uniform::new("light.outerCutOffCos".to_owned(), UniformType::Float1(12.5_f32.to_radians().cos())));
+            lighting_shader.set_uniform(Uniform::new("spotlight.innerCutOffCos".to_owned(), UniformType::Float1(1.0_f32.to_radians().cos())));
+            lighting_shader.set_uniform(Uniform::new("spotlight.outerCutOffCos".to_owned(), UniformType::Float1(12.5_f32.to_radians().cos())));
 
-            lighting_shader.set_uniform(Uniform::new("light.constant".to_owned(), UniformType::Float1(1.0)));
-            lighting_shader.set_uniform(Uniform::new("light.linear".to_owned(), UniformType::Float1(0.0022)));
-            lighting_shader.set_uniform(Uniform::new("light.quadratic".to_owned(), UniformType::Float1(0.0019)));
+            lighting_shader.set_uniform(Uniform::new("spotlight.constant".to_owned(), UniformType::Float1(1.0)));
+            lighting_shader.set_uniform(Uniform::new("spotlight.linear".to_owned(), UniformType::Float1(0.0022)));
+            lighting_shader.set_uniform(Uniform::new("spotlight.quadratic".to_owned(), UniformType::Float1(0.0019)));
 
             // transforms
             lighting_shader.set_uniform(Uniform::new("projection".to_owned(), UniformType::Matrix4(projection)));
