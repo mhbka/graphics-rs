@@ -9,6 +9,7 @@ struct Material {
 struct SpotLight {
     vec3 position;
     vec3 direction;
+    vec3 color;
     float innerCutOffCos;
     float outerCutOffCos;
     float constant;
@@ -22,7 +23,6 @@ in vec3 fragNormal;
 
 uniform Material material;
 uniform SpotLight spotlight;
-uniform vec3 lightColor;
 
 out vec4 FragColor;
 
@@ -60,22 +60,22 @@ vec3 calcSpotLight(SpotLight spotlight) {
         specular *= intensity;     
 
         // 3 lighting types
-        vec3 ambientLight = ambient * lightColor;
+        vec3 ambientLight = ambient * spotlight.color;
 
         vec3 lightDir = normalize(spotlight.position - fragPos);
         float diffuseStrength = max(0.0, dot(lightDir, fragNormal));
-        vec3 diffuseLight = diffuseStrength * diffuse * lightColor;
+        vec3 diffuseLight = diffuseStrength * diffuse * spotlight.color;
 
         vec3 viewDir = normalize(spotlight.position - fragPos);
         vec3 reflectDir = reflect(-lightDir, fragNormal);
         float specularity = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
-        vec3 specularLight = specular * specularity * lightColor;
+        vec3 specularLight = specular * specularity * spotlight.color;
 
         return ambientLight + diffuseLight + specularLight;
     }
 
     // else just use ambient
     else {
-        return ambient * lightColor;
+        return ambient * spotlight.color;
     } 
 }

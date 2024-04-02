@@ -38,8 +38,6 @@ impl Renderer for LightingRenderer {
         // Shader for lighting
         let mut lighting_shader = unsafe { Shader::new("lighting", "lighting") };
         unsafe {
-                lighting_shader.set_uniform(Uniform::new("lightColor".to_owned(), UniformType::Float3(1.0, 1.0, 1.0)));
-
                 // texture
                 Texture::new("container2.png", gl::TEXTURE0);
                 lighting_shader.set_uniform(Uniform::new("material.diffuse".to_owned(), UniformType::Int1(0)));
@@ -86,29 +84,13 @@ impl Renderer for LightingRenderer {
         // Draw cubes using lighting shader
         graphics_state.shaders[0].use_program();
         for &pos in self.pos_data.iter() {
-            let (projection, view, model) = get_transform_matrices(&game_state.camera, pos, Vec3::ONE);
-
             let lighting_shader = &mut graphics_state.shaders[0];
             
             // light 
-            let light_pos_uniform = UniformType::Float3(game_state.camera.position.x, game_state.camera.position.y, game_state.camera.position.z);
-            lighting_shader.set_uniform(Uniform::new("spotlight.position".to_owned(), light_pos_uniform));
-
-            let light_dir_uniform = UniformType::Float3(game_state.camera.front.x, game_state.camera.front.y, game_state.camera.front.z);
-            lighting_shader.set_uniform(Uniform::new("spotlight.direction".to_owned(), light_dir_uniform));
-
-            lighting_shader.set_uniform(Uniform::new("spotlight.innerCutOffCos".to_owned(), UniformType::Float1(1.0_f32.to_radians().cos())));
-            lighting_shader.set_uniform(Uniform::new("spotlight.outerCutOffCos".to_owned(), UniformType::Float1(12.5_f32.to_radians().cos())));
-
-            lighting_shader.set_uniform(Uniform::new("spotlight.constant".to_owned(), UniformType::Float1(1.0)));
-            lighting_shader.set_uniform(Uniform::new("spotlight.linear".to_owned(), UniformType::Float1(0.0022)));
-            lighting_shader.set_uniform(Uniform::new("spotlight.quadratic".to_owned(), UniformType::Float1(0.0019)));
+            LightingRenderer::set_flashlight_uniforms(lighting_shader, game_state);
 
             // transforms
-            lighting_shader.set_uniform(Uniform::new("projection".to_owned(), UniformType::Matrix4(projection)));
-            lighting_shader.set_uniform(Uniform::new("view".to_owned(), UniformType::Matrix4(view)));
-            lighting_shader.set_uniform(Uniform::new("model".to_owned(), UniformType::Matrix4(model)));
-            lighting_shader.set_uniform(Uniform::new("normTransform".to_owned(), UniformType::Matrix4((model).inverse().transpose())));
+            LightingRenderer::set_transform_uniforms(lighting_shader, game_state, pos);
 
             gl::DrawArrays(gl::TRIANGLES, 0, 36);
         }
@@ -116,5 +98,33 @@ impl Renderer for LightingRenderer {
         // Check for any new errors
         let error = gl::GetError();
         if error != 0 { println!("error: {error}"); }
+    }
+}
+
+impl LightingRenderer {
+    unsafe fn set_flashlight_uniforms(lighting_shader: &mut Shader, game_state: &GameState) {
+        let light_pos_uniform = UniformType::Float3(game_state.camera.position.x, game_state.camera.position.y, game_state.camera.position.z);
+        lighting_shader.set_uniform(Uniform::new("spotlight.position".to_owned(), light_pos_uniform));
+
+        let light_dir_uniform = UniformType::Float3(game_state.camera.front.x, game_state.camera.front.y, game_state.camera.front.z);
+        lighting_shader.set_uniform(Uniform::new("spotlight.direction".to_owned(), light_dir_uniform));
+        
+        lighting_shader.set_uniform(Uniform::new("spotlight.color".to_owned(), UniformType::Float3(1.0, 1.0, 1.0)));
+
+        lighting_shader.set_uniform(Uniform::new("spotlight.innerCutOffCos".to_owned(), UniformType::Float1(1.0_f32.to_radians().cos())));
+        lighting_shader.set_uniform(Uniform::new("spotlight.outerCutOffCos".to_owned(), UniformType::Float1(12.5_f32.to_radians().cos())));
+
+        lighting_shader.set_uniform(Uniform::new("spotlight.constant".to_owned(), UniformType::Float1(1.0)));
+        lighting_shader.set_uniform(Uniform::new("spotlight.linear".to_owned(), UniformType::Float1(0.0022)));
+        lighting_shader.set_uniform(Uniform::new("spotlight.quadratic".to_owned(), UniformType::Float1(0.0019)));
+    }
+
+    unsafe fn set_transform_uniforms(lighting_shader: &mut Shader, game_state: &GameState, object_position: Vec3) { 
+        let (projection, view, model) = get_transform_matrices(&game_state.camera, object_position, Vec3::ONE);
+        
+        lighting_shader.set_uniform(Uniform::new("projection".to_owned(), UniformType::Matrix4(projection)));
+        lighting_shader.set_uniform(Uniform::new("view".to_owned(), UniformType::Matrix4(view)));
+        lighting_shader.set_uniform(Uniform::new("model".to_owned(), UniformType::Matrix4(model)));
+        lighting_shader.set_uniform(Uniform::new("normTransform".to_owned(), UniformType::Matrix4((model).inverse().transpose())));
     }
 }
