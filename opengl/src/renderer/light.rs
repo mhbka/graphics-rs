@@ -88,6 +88,7 @@ impl Renderer for LightingRenderer {
             
             // light 
             LightingRenderer::set_flashlight_uniforms(lighting_shader, game_state);
+            LightingRenderer::set_directional_light_uniforms(lighting_shader);
 
             // transforms
             LightingRenderer::set_transform_uniforms(lighting_shader, game_state, pos);
@@ -117,6 +118,11 @@ impl LightingRenderer {
         lighting_shader.set_uniform(Uniform::new("spotlight.constant".to_owned(), UniformType::Float1(1.0)));
         lighting_shader.set_uniform(Uniform::new("spotlight.linear".to_owned(), UniformType::Float1(0.0022)));
         lighting_shader.set_uniform(Uniform::new("spotlight.quadratic".to_owned(), UniformType::Float1(0.0019)));
+    }
+
+    unsafe fn set_directional_light_uniforms(lighting_shader: &mut Shader) {
+        lighting_shader.set_uniform(Uniform::new("dirlight.direction".to_owned(), UniformType::Float3(0.0, 1.0, 0.0)));
+        lighting_shader.set_uniform(Uniform::new("dirlight.color".to_owned(), UniformType::Float3(0.0, 1.0, 0.0)));
     }
 
     unsafe fn set_transform_uniforms(lighting_shader: &mut Shader, game_state: &GameState, object_position: Vec3) { 

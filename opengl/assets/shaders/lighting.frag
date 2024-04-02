@@ -6,6 +6,11 @@ struct Material {
     float shininess;
 };
 
+struct DirectionalLight {
+    vec3 direction;
+    vec3 color;
+};
+
 struct SpotLight {
     vec3 position;
     vec3 direction;
@@ -22,10 +27,12 @@ in vec3 fragPos;
 in vec3 fragNormal;
 
 uniform Material material;
+uniform DirectionalLight dirlight;
 uniform SpotLight spotlight;
 
 out vec4 FragColor;
 
+vec3 calcDirLight(DirectionalLight dirlight);
 vec3 calcSpotLight(SpotLight spotlight);
 
 void main()
@@ -33,18 +40,51 @@ void main()
     vec3 outputColor = vec3(0.0);
 
     outputColor += calcSpotLight(spotlight);
+    outputColor += calcDirLight(dirlight);
 
     FragColor = vec4(outputColor, 1.0);
 }
 
-vec3 calcSpotLight(SpotLight spotlight) {
+
+vec3 calcDirLight(DirectionalLight dirlight) 
+{
+    const float AMB_W = 0.0;
+    const float DIF_W = 0.5;
+    const float SPC_W = 1.0;
+
+    vec3 ambient = AMB_W * vec3(texture2D(material.diffuse, texCoords));
+    vec3 diffuse = DIF_W * vec3(texture2D(material.diffuse, texCoords));
+    vec3 specular = SPC_W * vec3(texture2D(material.specular, texCoords));
+
+    // 3 lighting types
+    vec3 ambientLight = ambient * dirlight.color;
+
+    float diffuseStrength = max(0.0, dot(dirlight.direction, fragNormal));
+    vec3 diffuseLight = diffuseStrength * diffuse * dirlight.color;
+
+    vec3 viewDir = normalize(spotlight.position - fragPos);
+    vec3 reflectDir = reflect(-dirlight.direction, fragNormal);
+    float specularity = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    vec3 specularLight = specular * specularity * dirlight.color;
+
+    return ambientLight + diffuseLight + specularLight;
+}
+
+
+vec3 calcSpotLight(SpotLight spotlight) 
+{
+
+    const float AMB_W = 0.5;
+    const float DIF_W = 1.0;
+    const float SPC_W = 2.0;
+    
     // calculate light intensity using attenuation
     float dist = length(fragPos - spotlight.position);
     float attenuation = 1.0 / (spotlight.constant + (spotlight.linear * dist) + (spotlight.quadratic * dist * dist));
 
-    vec3 ambient = attenuation * 0.5 * vec3(texture2D(material.diffuse, texCoords));
-    vec3 diffuse = attenuation * 1.0 * vec3(texture2D(material.diffuse, texCoords));
-    vec3 specular = attenuation * 2.0 * vec3(texture2D(material.specular, texCoords));
+    vec3 ambient = attenuation * AMB_W * vec3(texture2D(material.diffuse, texCoords));
+    vec3 diffuse = attenuation * DIF_W * vec3(texture2D(material.diffuse, texCoords));
+    vec3 specular = attenuation * SPC_W * vec3(texture2D(material.specular, texCoords));
 
     // calculate cosine angle between light->frag and light direction
     vec3 fragToLight = fragPos - spotlight.position;
