@@ -71,13 +71,28 @@ impl Renderer for LightingRenderer {
         // Draw light cubes for point lights, using light shader
         for i in 0..5 {
             let time = glfw_state.glfw.get_time() as f32;
-            let pos =  time.sin() * Vec3::ONE;
-            let color = Vec3::new((i as f32 * time).sin(), (i as f32 * time).cos(), (i as f32 * time).tan());
+            let pos =  i as f32 * Vec3::ONE * match i {
+                0 => time.sin(),
+                1 => time.cos(),
+                2 => time.tan(),
+                3 => time.sin() * time.tan(),
+                4 => time.cos() * time.tan(),
+                _ => panic!(),
+            };
+            let color = match i {
+                0 => Vec3::new(1.0, 0.0, 0.0),
+                1 => Vec3::new(0.0, 1.0, 0.0),
+                2 => Vec3::new(0.0, 0.0, 1.0),
+                3 => Vec3::new(1.0, 0.0, 1.0),
+                4 => Vec3::new(1.0, 1.0, 0.0),
+                _ => panic!(),
+            };
 
             let transform = get_transform(&game_state.camera, pos, 0.1 * Vec3::ONE);
 
             LightingRenderer::set_pointlight_uniforms(graphics_state, transform, pos, color, i); //also does shading for actual cubes
 
+            graphics_state.shaders[1].use_program();
             gl::DrawArrays(gl::TRIANGLES, 0, 36);
         }
 
