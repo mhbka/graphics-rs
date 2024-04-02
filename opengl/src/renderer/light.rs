@@ -35,7 +35,7 @@ impl Renderer for LightingRenderer {
         vao.check_binding();
 
         // Shader for lighting
-        let mut lighting_shader = unsafe { Shader::new("lighting", "lighting") };
+        let mut lighting_shader = unsafe { Shader::new("light/lighting", "light/lighting") };
         unsafe {
                 // texture
                 Texture::new("container2.png", gl::TEXTURE0);
@@ -48,7 +48,7 @@ impl Renderer for LightingRenderer {
         };
 
         // Shader for the light itself
-        let light_shader = unsafe { Shader::new("light_source", "light_source") };
+        let light_shader = unsafe { Shader::new("light/light_source", "light/light_source") };
        
         // Check for error before returning
         let err = gl::GetError();
@@ -71,12 +71,12 @@ impl Renderer for LightingRenderer {
         // Draw light cubes for point lights, using light shader
         for i in 0..5 {
             let time = glfw_state.glfw.get_time() as f32;
-            let pos =  i as f32 * Vec3::ONE * match i {
-                0 => time.sin(),
-                1 => time.cos(),
-                2 => time.tan(),
-                3 => time.sin() * time.tan(),
-                4 => time.cos() * time.tan(),
+            let pos =  i as f32 * match i {
+                0 => Vec3::new(time.sin(), time.sin(), 0.0),
+                1 => Vec3::new(time.cos(), time.cos(), 0.0),
+                2 => Vec3::new(time.sin(), 0.0, time.sin()),
+                3 => Vec3::new(time.cos(), 0.0, time.cos()),
+                4 => Vec3::new(time.sin(), time.sin(), time.cos()),
                 _ => panic!(),
             };
             let color = match i {
@@ -153,7 +153,7 @@ impl LightingRenderer {
 
     unsafe fn set_directional_light_uniforms(lighting_shader: &mut Shader) {
         lighting_shader.set_uniform(Uniform::new("dirlight.direction".to_owned(), UniformType::Float3(1.0, 1.0, 1.0)));
-        lighting_shader.set_uniform(Uniform::new("dirlight.color".to_owned(), UniformType::Float3(0.0, 1.0, 0.0)));
+        lighting_shader.set_uniform(Uniform::new("dirlight.color".to_owned(), UniformType::Float3(1.0, 1.0, 1.0)));
     }
 
     unsafe fn set_transform_uniforms(lighting_shader: &mut Shader, game_state: &GameState, object_position: Vec3) { 

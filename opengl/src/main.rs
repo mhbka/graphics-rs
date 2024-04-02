@@ -13,7 +13,8 @@ use crate::init::{gl_init, glfw_init, game_init};
 
 
 fn main() {
-    env::set_var("RUST_BACKTRACE", "1");
+    env::set_vasr("RUST_BACKTRACE", "1");
+
     let use_old_ver = true;
 
     let (width, height) = (800, 600);

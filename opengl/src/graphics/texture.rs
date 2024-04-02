@@ -1,11 +1,18 @@
-use image::{flat, io::Reader as ImageReader, ColorType, DynamicImage};
+use image::{io::Reader as ImageReader, ColorType};
 use gl::types::*;
+
+pub enum TextureType {
+    DIFFUSE,
+    SPECULAR
+}
 
 /// Wrapper struct for a texture.
 pub struct Texture {
     pub filename: String,
     pub texture: u32,
-    pub texture_unit: u32
+    pub texture_unit: u32,
+    pub id: u32,
+    pub variant: TextureType
 }
 
 // Public fns
@@ -13,7 +20,7 @@ impl Texture {
     pub unsafe fn new(filename: &str, mut texture_unit: GLenum) -> Self {
         // try to activate texture unit (should always work if `texture_unit` is valid)
         if !Texture::activate_texture_unit(texture_unit) { 
-            texture_unit = u32::MAX;  // invalid state
+            panic!("error: unable to activate texture unit {texture_unit} for texture: {filename}");
         }
 
         // gen and bind a new texture
@@ -41,7 +48,11 @@ impl Texture {
         // generate a mipmap for this texture
         gl::GenerateMipmap(gl::TEXTURE_2D);
 
-        Texture {filename: filename.to_owned(), texture, texture_unit}
+        Texture {
+            filename: filename.to_owned(), 
+            texture, 
+            texture_unit
+        }
     }
 }
 
@@ -77,7 +88,7 @@ impl Texture {
     }
 
     unsafe fn set_options() {
-        // TODO: make this configurable
+        // TODO: make this configurable?
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);	
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::REPEAT as i32);
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR_MIPMAP_LINEAR as i32);

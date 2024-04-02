@@ -44,7 +44,7 @@ impl Renderer for CubesRenderer {
         let mut mix_amount = 0.2;
 
         // Initialize and use shader + add textures as uniforms
-        let mut shader_program = unsafe { Shader::new("cubes", "cubes") };
+        let mut shader_program = unsafe { Shader::new("cubes/cubes", "cubes/cubes") };
         unsafe {
             shader_program.set_uniform(Uniform::new("texture1".to_owned(), UniformType::Int1(1)));
             shader_program.set_uniform(Uniform::new("texture2".to_owned(), UniformType::Int1(2)));
