@@ -68,25 +68,25 @@ impl Renderer for LightingRenderer {
         gl::Clear(gl::COLOR_BUFFER_BIT);
         gl::Clear(gl::DEPTH_BUFFER_BIT);
 
-        // Draw light cube using light shader
-        /* 
-        graphics_state.shaders[1].use_program();
-        let transform = get_transform(&game_state.camera, self.light_pos, 0.1 * Vec3::ONE);
+        // Draw light cubes for point lights, using light shader
+        for i in 0..5 {
+            let time = glfw_state.glfw.get_time() as f32;
+            let pos =  time.sin() * Vec3::ONE;
+            let color = Vec3::new((i as f32 * time).sin(), (i as f32 * time).cos(), (i as f32 * time).tan());
 
-        graphics_state
-            .shaders[1]
-            .set_uniform(Uniform::new("transform".to_owned(), UniformType::Matrix4(transform)));
+            let transform = get_transform(&game_state.camera, pos, 0.1 * Vec3::ONE);
 
-        gl::DrawArrays(gl::TRIANGLES, 0, 36);
-        */
+            LightingRenderer::set_pointlight_uniforms(graphics_state, transform, pos, color, i); //also does shading for actual cubes
 
-        // Draw cubes using lighting shader
+            gl::DrawArrays(gl::TRIANGLES, 0, 36);
+        }
+
+        // Draw and shade actual cubes using lighting shader
         graphics_state.shaders[0].use_program();
         for &pos in self.pos_data.iter() {
             let lighting_shader = &mut graphics_state.shaders[0];
             
             // light 
-            LightingRenderer::set_pointlights(lighting_shader, glfw_state);
             LightingRenderer::set_flashlight_uniforms(lighting_shader, game_state);
             LightingRenderer::set_directional_light_uniforms(lighting_shader);
 
@@ -103,19 +103,20 @@ impl Renderer for LightingRenderer {
 }
 
 impl LightingRenderer {
-    unsafe fn set_pointlights(lighting_shader: &mut Shader, glfw_state: &GLFWState) {
-        for i in 0..5 {
-            let spotlight_str = format!("pointlights[{i}]");
+    unsafe fn set_pointlight_uniforms(graphics_state: &mut GraphicsState, transform: Mat4, pos: Vec3, color: Vec3, index: u32) {
+        let pointlight_str = format!("pointlights[{index}]");
 
-            let time = glfw_state.glfw.get_time() as f32;
+        let light_shader = &mut graphics_state.shaders[1];
+        light_shader.use_program();
+        light_shader.set_uniform(Uniform::new("transform".to_owned(), UniformType::Matrix4(transform)));
+        light_shader.set_uniform(Uniform::new("fragColor".to_owned(), UniformType::Float3(color.x, color.y, color.z)));
 
-            let pos = i as f32 * time.sin() * Vec3::ONE;
-            let color = Vec3::new((i as f32 * time).sin(), (i as f32 * time).cos(), (i as f32 * time).tan());
-
-            lighting_shader.set_uniform(Uniform::new(spotlight_str.clone() + ".position", UniformType::Float3(pos.x, pos.y, pos.z)));
-            lighting_shader.set_uniform(Uniform::new(spotlight_str + ".color", UniformType::Float3(color.x, color.y, color.z)));
-        }
+        let lighting_shader = &mut graphics_state.shaders[0];
+        lighting_shader.use_program();
+        lighting_shader.set_uniform(Uniform::new(pointlight_str.clone() + ".position", UniformType::Float3(pos.x, pos.y, pos.z)));
+        lighting_shader.set_uniform(Uniform::new(pointlight_str + ".color", UniformType::Float3(color.x, color.y, color.z)));
     }
+    
 
     unsafe fn set_flashlight_uniforms(lighting_shader: &mut Shader, game_state: &GameState) {
         
