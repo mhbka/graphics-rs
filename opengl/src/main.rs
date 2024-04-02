@@ -20,10 +20,7 @@ fn main() {
 
     // let mut renderer = CubesRenderer::new(vec![CUBE_POSITIONS]);
 
-    let mut renderer = LightingRenderer::new(
-        Vec::from(data::CUBE_POSITIONS),
-        Vec3::new(1.2, 1.0, 2.0)
-    );
+    let mut renderer = LightingRenderer::new(Vec::from(data::CUBE_POSITIONS));
 
     let mut glfw_state = glfw_init::init(width, height, use_old_ver);
     let mut graphics_state = unsafe { gl_init::init(&mut renderer) };

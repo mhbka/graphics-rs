@@ -10,13 +10,12 @@ use glam::*;
 use super::Renderer;
 
 pub struct LightingRenderer {
-    pos_data: Vec<Vec3>,
-    light_pos: Vec3
+    pos_data: Vec<Vec3>
 }
 
 impl LightingRenderer {
-    pub fn new(pos_data: Vec<Vec3>, light_pos: Vec3) -> Self {
-        LightingRenderer { pos_data, light_pos }
+    pub fn new(pos_data: Vec<Vec3>) -> Self {
+        LightingRenderer { pos_data }
     }
 }
 
@@ -87,6 +86,7 @@ impl Renderer for LightingRenderer {
             let lighting_shader = &mut graphics_state.shaders[0];
             
             // light 
+            LightingRenderer::set_pointlights(lighting_shader, glfw_state);
             LightingRenderer::set_flashlight_uniforms(lighting_shader, game_state);
             LightingRenderer::set_directional_light_uniforms(lighting_shader);
 
@@ -103,7 +103,22 @@ impl Renderer for LightingRenderer {
 }
 
 impl LightingRenderer {
+    unsafe fn set_pointlights(lighting_shader: &mut Shader, glfw_state: &GLFWState) {
+        for i in 0..5 {
+            let spotlight_str = format!("pointlights[{i}]");
+
+            let time = glfw_state.glfw.get_time() as f32;
+
+            let pos = i as f32 * time.sin() * Vec3::ONE;
+            let color = Vec3::new((i as f32 * time).sin(), (i as f32 * time).cos(), (i as f32 * time).tan());
+
+            lighting_shader.set_uniform(Uniform::new(spotlight_str.clone() + ".position", UniformType::Float3(pos.x, pos.y, pos.z)));
+            lighting_shader.set_uniform(Uniform::new(spotlight_str + ".color", UniformType::Float3(color.x, color.y, color.z)));
+        }
+    }
+
     unsafe fn set_flashlight_uniforms(lighting_shader: &mut Shader, game_state: &GameState) {
+        
         let light_pos_uniform = UniformType::Float3(game_state.camera.position.x, game_state.camera.position.y, game_state.camera.position.z);
         lighting_shader.set_uniform(Uniform::new("spotlight.position".to_owned(), light_pos_uniform));
 
@@ -121,7 +136,7 @@ impl LightingRenderer {
     }
 
     unsafe fn set_directional_light_uniforms(lighting_shader: &mut Shader) {
-        lighting_shader.set_uniform(Uniform::new("dirlight.direction".to_owned(), UniformType::Float3(0.0, 1.0, 0.0)));
+        lighting_shader.set_uniform(Uniform::new("dirlight.direction".to_owned(), UniformType::Float3(1.0, 1.0, 1.0)));
         lighting_shader.set_uniform(Uniform::new("dirlight.color".to_owned(), UniformType::Float3(0.0, 1.0, 0.0)));
     }
 
