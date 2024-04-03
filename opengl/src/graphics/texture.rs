@@ -12,7 +12,6 @@ impl ToString for TextureType {
         match *self {
             TextureType::DIFFUSE => "diffuse".to_owned(),
             TextureType::SPECULAR => "specular".to_owned(),
-            other => panic!("this TextureType cannot be converted to String."),
         }
     }
 }
@@ -20,24 +19,17 @@ impl ToString for TextureType {
 /// Wrapper struct for a texture.
 pub struct Texture {
     pub filename: String,
-    pub texture: u32,
-    pub texture_unit: u32,
     pub id: u32,
     pub variant: TextureType
 }
 
 // Public fns
 impl Texture {
-    pub unsafe fn new(filename: &str, mut texture_unit: GLenum) -> Self {
-        // try to activate texture unit (should always work if `texture_unit` is valid)
-        if !Texture::activate_texture_unit(texture_unit) { 
-            panic!("error: unable to activate texture unit {texture_unit} for texture: {filename}");
-        }
-
+    pub unsafe fn new(filename: &str, variant: TextureType) -> Self {
         // gen and bind a new texture
-        let mut texture = 0;
-        gl::GenTextures(1, &mut texture as *mut u32);
-        gl::BindTexture(gl::TEXTURE_2D, texture);
+        let mut id = 0;
+        gl::GenTextures(1, &mut id as *mut u32);
+        gl::BindTexture(gl::TEXTURE_2D, id);
 
         // set options for the texture
         Texture::set_options();
@@ -61,8 +53,8 @@ impl Texture {
 
         Texture {
             filename: filename.to_owned(), 
-            texture, 
-            texture_unit
+            id,
+            variant
         }
     }
 }
