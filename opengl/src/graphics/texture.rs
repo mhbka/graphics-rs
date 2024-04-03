@@ -1,9 +1,20 @@
 use image::{io::Reader as ImageReader, ColorType};
 use gl::types::*;
 
+#[derive(Debug)]
 pub enum TextureType {
     DIFFUSE,
     SPECULAR
+}
+
+impl ToString for TextureType {
+    fn to_string(&self) -> String {
+        match *self {
+            TextureType::DIFFUSE => "diffuse".to_owned(),
+            TextureType::SPECULAR => "specular".to_owned(),
+            other => panic!("this TextureType cannot be converted to String."),
+        }
+    }
 }
 
 /// Wrapper struct for a texture.
