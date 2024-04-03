@@ -11,3 +11,4 @@ gl = "0.14.0"
 glam = "0.25.0"
 glfw = "0.55.0"
 image = "0.24.9"
+russimp = { version = "3.2.0", features = ["prebuilt"] }

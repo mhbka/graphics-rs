@@ -1,6 +1,5 @@
 use crate::global_state::{GLFWState, GameState, GraphicsState};
 
-pub mod cubes;
 pub mod light;
 
 

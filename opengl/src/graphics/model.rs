@@ -18,7 +18,7 @@ impl Model {
 
 // private impls
 impl Model {
-    fn load_model(filepath: &str) -> {
+    fn load_model(filepath: &str) {
 
     }
 }

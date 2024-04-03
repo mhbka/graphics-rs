@@ -5,15 +5,13 @@ mod data;
 mod engine;
 mod global_state;
 
-use glam::Vec3;
-use renderer::cubes::CubesRenderer;
 use renderer::light::LightingRenderer;
 use std::env;
 use crate::init::{gl_init, glfw_init, game_init};
 
 
 fn main() {
-    env::set_vasr("RUST_BACKTRACE", "1");
+    env::set_var("RUST_BACKTRACE", "1");
 
     let use_old_ver = true;
 
