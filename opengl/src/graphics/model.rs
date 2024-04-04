@@ -1,8 +1,11 @@
 use std::rc::Rc;
 use glam::*;
-use super::{model_mesh::ModelMesh, shader::Shader, vertex::Vertex};
+use super::{model_mesh::ModelMesh, model_texture::{ModelTexture, ModelTextureType}, shader::Shader, vertex::Vertex};
 use russimp::{
-    mesh::Mesh, node::Node, scene::{PostProcess, Scene}
+    mesh::Mesh, 
+    node::Node, 
+    scene::{PostProcess, Scene},
+    material::TextureType
 };
 
 pub struct Model {
@@ -77,8 +80,21 @@ impl Model {
 
         let textures =  { 
             let material = scene.materials[mesh.material_index as usize];
-            
 
+            // TODO: is this correct??
+            let spec_tex_assimp = material.textures
+                .get(&TextureType::Specular)
+                .unwrap()
+                .borrow();
+            let spec_tex = ModelTexture::from_russimp_texture(*spec_tex_assimp, ModelTextureType::SPECULAR);
+
+            let diff_tex_assimp = material.textures
+                .get(&TextureType::Diffuse)
+                .unwrap()
+                .borrow();
+            let diff_tex = ModelTexture::from_russimp_texture(*diff_tex_assimp, ModelTextureType::DIFFUSE);
+
+            vec![spec_tex, diff_tex]
         };
 
         let indices: Vec<u32> = mesh.faces.iter().flat_map(

@@ -59,18 +59,20 @@ impl ModelTexture {
     }
 
     /// Transform a russimp Texture to a native ModelTexture.
-    pub unsafe fn from_russimp_texture(texture: Texture) -> Self {
+    pub unsafe fn from_russimp_texture(texture: Texture, variant: ModelTextureType) -> Self {
         let mut id = 0;
         gl::GenTextures(1, &mut id as *mut u32);
         gl::BindTexture(gl::TEXTURE_2D, id);
 
         ModelTexture::set_options();
 
-        // should be ok cuz data layout is the same i think
+        // TODO: verify that DataContent::Bytes is also 4 bytes per pixel
         let pixel_data_ptr = match texture.data {
             DataContent::Bytes(bytes) => bytes.as_ptr() as *const GLvoid,
             DataContent::Texel(texels) => texels.as_ptr() as *const GLvoid
         };
+        let channels = gl::RGBA; 
+        println!("{}", texture.ach_format_hint); // maybe with this?
 
         gl::TexImage2D(
             gl::TEXTURE_2D, 
@@ -87,7 +89,7 @@ impl ModelTexture {
         gl::GenerateMipmap(gl::TEXTURE_2D);
 
         ModelTexture {
-            filename: filename.to_owned(), 
+            filename: texture.filename, 
             id,
             variant
         }
