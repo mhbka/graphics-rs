@@ -25,16 +25,14 @@ pub struct Texture {
 
 // Public fns
 impl Texture {
+    /// Generate a new texture from an image file.
     pub unsafe fn new(filename: &str, variant: TextureType) -> Self {
-        // gen and bind a new texture
         let mut id = 0;
         gl::GenTextures(1, &mut id as *mut u32);
         gl::BindTexture(gl::TEXTURE_2D, id);
 
-        // set options for the texture
         Texture::set_options();
 
-        // load texture image data and copy to currently bound texture
         let (channels, width, height, flattened_pixels) = Texture::load_image_data(filename);
         gl::TexImage2D(
             gl::TEXTURE_2D, 
@@ -48,7 +46,6 @@ impl Texture {
             flattened_pixels.as_ptr() as *const GLvoid
         );
 
-        // generate a mipmap for this texture
         gl::GenerateMipmap(gl::TEXTURE_2D);
 
         Texture {
@@ -57,6 +54,9 @@ impl Texture {
             variant
         }
     }
+
+    /// Transform a russimp texture to a native one.
+    pub unsafe fn from_russimp_texture(texture: )
 }
 
 // Internal implementations
