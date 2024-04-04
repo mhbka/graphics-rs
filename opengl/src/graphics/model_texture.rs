@@ -1,39 +1,42 @@
 use image::{io::Reader as ImageReader, ColorType};
+use russimp::material::{DataContent, Texture, TextureType};
 use gl::types::*;
 
 #[derive(Debug)]
-pub enum TextureType {
+pub enum ModelTextureType {
     DIFFUSE,
     SPECULAR
 }
 
-impl ToString for TextureType {
+impl ToString for ModelTextureType {
     fn to_string(&self) -> String {
         match *self {
-            TextureType::DIFFUSE => "diffuse".to_owned(),
-            TextureType::SPECULAR => "specular".to_owned(),
+            ModelTextureType::DIFFUSE => "diffuse".to_owned(),
+            ModelTextureType::SPECULAR => "specular".to_owned(),
         }
     }
 }
 
-/// Wrapper struct for a texture.
-pub struct Texture {
+/// A graphic texture.
+/// 
+/// Note: named as such due to conflict with russimp's Texture type.
+pub struct ModelTexture {
     pub filename: String,
     pub id: u32,
-    pub variant: TextureType
+    pub variant: ModelTextureType
 }
 
 // Public fns
-impl Texture {
-    /// Generate a new texture from an image file.
-    pub unsafe fn new(filename: &str, variant: TextureType) -> Self {
+impl ModelTexture {
+    /// Generate a new ModelTexture from an image file.
+    pub unsafe fn new(filename: &str, variant: ModelTextureType) -> Self {
         let mut id = 0;
         gl::GenTextures(1, &mut id as *mut u32);
         gl::BindTexture(gl::TEXTURE_2D, id);
 
-        Texture::set_options();
+        ModelTexture::set_options();
 
-        let (channels, width, height, flattened_pixels) = Texture::load_image_data(filename);
+        let (channels, width, height, flattened_pixels) = ModelTexture::load_image_data(filename);
         gl::TexImage2D(
             gl::TEXTURE_2D, 
             0, 
@@ -48,30 +51,62 @@ impl Texture {
 
         gl::GenerateMipmap(gl::TEXTURE_2D);
 
-        Texture {
+        ModelTexture {
             filename: filename.to_owned(), 
             id,
             variant
         }
     }
 
-    /// Transform a russimp texture to a native one.
-    pub unsafe fn from_russimp_texture(texture: )
+    /// Transform a russimp Texture to a native ModelTexture.
+    pub unsafe fn from_russimp_texture(texture: Texture) -> Self {
+        let mut id = 0;
+        gl::GenTextures(1, &mut id as *mut u32);
+        gl::BindTexture(gl::TEXTURE_2D, id);
+
+        ModelTexture::set_options();
+
+        // should be ok cuz data layout is the same i think
+        let pixel_data_ptr = match texture.data {
+            DataContent::Bytes(bytes) => bytes.as_ptr() as *const GLvoid,
+            DataContent::Texel(texels) => texels.as_ptr() as *const GLvoid
+        };
+
+        gl::TexImage2D(
+            gl::TEXTURE_2D, 
+            0, 
+            channels as i32, // ??
+            texture.width as i32, 
+            texture.height as i32, 
+            0, 
+            channels,
+            gl::UNSIGNED_BYTE,
+            pixel_data_ptr
+        );
+
+        gl::GenerateMipmap(gl::TEXTURE_2D);
+
+        ModelTexture {
+            filename: filename.to_owned(), 
+            id,
+            variant
+        }
+    }
 }
 
 // Internal implementations
-impl Texture {
+impl ModelTexture {
     fn load_image_data(filename: &str) -> (u32, u32, u32, Vec<u8>) {
         let img = ImageReader::open(&format!("assets/textures/{filename}"))
-            .expect(&format!("Couldn't load texture image: {filename}"))
+            .expect(&format!("Couldn't load ModelTexture image: {filename}"))
             .decode()
-            .expect(&format!("Couldn't decode texture image: {filename}"))
+            .expect(&format!("Couldn't decode ModelTexture image: {filename}"))
             .flipv(); // OpenGL expects y=0 to be at the bottom of image, but images usually have y=0 at the top
 
         let channels = match img.color() {
             ColorType::Rgb8 => gl::RGB,
             ColorType::Rgba8 => gl::RGBA,
-            other => panic!("Unsupported ColorType when loading texture image {filename}: {other:?}"),
+            other => panic!("Unsupported ColorType when loading ModelTexture image {filename}: {other:?}"),
         };
         let (width, height) = (img.width(), img.height());
         let flattened_pixels: Vec<u8> = img.into_bytes();
@@ -84,7 +119,7 @@ impl Texture {
         
         let err = gl::GetError();
         if err != 0 { 
-            println!("error: problem during activating texture unit ({err})");
+            println!("error: problem during activating ModelTexture unit ({err})");
             return false;
         }
         true

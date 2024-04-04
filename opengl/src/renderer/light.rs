@@ -3,7 +3,7 @@ use crate::{
     engine::transform::{get_transform, get_transform_matrices}, 
     global_state::*, 
     graphics::{
-        shader::{Shader, Uniform, UniformType}, texture::{Texture, TextureType}, vao::{VertexAttr, VAO}
+        shader::{Shader, Uniform, UniformType}, model_texture::{Texture, TextureType}, vao::{VertexAttr, VAO}
     }
 };
 use glam::*;

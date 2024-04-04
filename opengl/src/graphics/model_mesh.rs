@@ -1,7 +1,7 @@
 use gl::types::GLvoid;
 
 use super::shader::{Shader, Uniform, UniformType};
-use super::texture::{Texture, TextureType};
+use super::model_texture::{ModelTexture, ModelTextureType};
 use super::vao::VAO;
 use super::vertex::Vertex;
 
@@ -10,14 +10,14 @@ use super::vertex::Vertex;
 /// Note: named as such due to conflict with russimp's Mesh type.
 pub struct ModelMesh {
     pub vertices: Vec<Vertex>,
-    pub textures: Vec<Texture>,
+    pub textures: Vec<ModelTexture>,
     pub indices: Vec<u32>,
     vao: VAO
 }
 
 impl ModelMesh {
     /// Generate a new ModelMesh including its VAO.
-    pub unsafe fn new(vertices: Vec<Vertex>, textures: Vec<Texture>, indices: Vec<u32>) -> Self {
+    pub unsafe fn new(vertices: Vec<Vertex>, textures: Vec<ModelTexture>, indices: Vec<u32>) -> Self {
         let vertex_attrs = Vertex::get_vertex_attrs();
         let vao = VAO::new(Vertex::flatten(&vertices), None, vertex_attrs);
         ModelMesh { vertices, textures, indices, vao }
@@ -37,11 +37,11 @@ impl ModelMesh {
             gl::ActiveTexture(gl::TEXTURE0 + i as u32);
 
             let index = match texture.variant {
-                TextureType::DIFFUSE => {
+                ModelTextureType::DIFFUSE => {
                     diffuse_i +=1;
                     diffuse_i.to_string()
                 },
-                TextureType::SPECULAR => {
+                ModelTextureType::SPECULAR => {
                     specular_i +=1;
                     specular_i.to_string()
                 },
