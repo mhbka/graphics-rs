@@ -26,7 +26,7 @@ impl Mesh {
     }
 
     /// Draw this mesh.
-    pub unsafe fn draw(&self, shader: &Shader) {
+    pub unsafe fn draw(&self, shader: &mut Shader) {
         let mut diffuse_i = 1;
         let mut specular_i = 1;
 

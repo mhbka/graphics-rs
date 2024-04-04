@@ -3,7 +3,7 @@ use crate::{
     engine::transform::{get_transform, get_transform_matrices}, 
     global_state::*, 
     graphics::{
-        shader::{Shader, Uniform, UniformType}, texture::Texture, vao::{VertexAttr, VAO}
+        shader::{Shader, Uniform, UniformType}, texture::{Texture, TextureType}, vao::{VertexAttr, VAO}
     }
 };
 use glam::*;
@@ -38,11 +38,13 @@ impl Renderer for LightingRenderer {
         let mut lighting_shader = unsafe { Shader::new("light/lighting", "light/lighting") };
         unsafe {
                 // texture
-                Texture::new("container2.png", gl::TEXTURE0);
+                gl::ActiveTexture(gl::TEXTURE0);
+                Texture::new("container2.png", TextureType::DIFFUSE);
                 lighting_shader.set_uniform(Uniform::new("material.diffuse".to_owned(), UniformType::Int1(0)));
 
                 // specular texture + shininess
-                Texture::new("container2_specular.png", gl::TEXTURE1);
+                gl::ActiveTexture(gl::TEXTURE1);
+                Texture::new("container2_specular.png", TextureType::SPECULAR);
                 lighting_shader.set_uniform(Uniform::new("material.specular".to_owned(), UniformType::Int1(1)));
                 lighting_shader.set_uniform(Uniform::new("material.shininess".to_owned(), UniformType::Float1(32.0)));
         };

@@ -5,12 +5,14 @@ pub struct Model {
 }
 
 impl Model {
+    /* 
     pub fn new(filepath: &str) -> Self {
 
     }
+    */
 
-    pub unsafe fn draw(&self, shader: &Shader) {
-        for mesh in self.meshes {
+    pub unsafe fn draw(&self, shader: &mut Shader) {
+        for mesh in &self.meshes {
             mesh.draw(shader);
         }
     }
