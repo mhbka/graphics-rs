@@ -37,6 +37,12 @@ impl Model {
             PostProcess::OptimizeMeshes
             ])
              .unwrap();
+
+        for (i, mat) in scene.materials.iter().enumerate() {
+            let texs = &mat.textures;
+            if texs.is_empty() {println!("mat {i} is empty")}
+            else {println!("mat {i} has {} texs", texs.len())}
+        }
         
         if let Some(root) = scene.root.as_ref() {
             Model::process_node(self, &scene, root);
@@ -59,16 +65,12 @@ impl Model {
     /// Converts a russimp Mesh into our ModelMesh.
     unsafe fn process_mesh(mesh: &Mesh, scene: &Scene) -> ModelMesh {
         let mut vertices = Vec::with_capacity(mesh.vertices.len());
-        println!("{}", mesh.vertices.len());
-        for i in 0..(mesh.vertices.len() - 1) {
+        for i in 0..mesh.vertices.len() {
             vertices.push(
                 {
                     let pos_r = mesh.vertices[i];
                     let norm_r = mesh.normals[i];
-                    let tex_r = match mesh.texture_coords[i].as_deref() {
-                        Some(v) => v[0],
-                        None => Vector3D { x: 0.0, y: 0.0, z: 0.0 },
-                    };
+                    let tex_r = mesh.texture_coords[0].as_deref().unwrap()[i];
 
                     let position = Vec3::new(pos_r.x, pos_r.y, pos_r.z);
                     let normal = Vec3::new(norm_r.x, norm_r.y, norm_r.z);
@@ -81,8 +83,7 @@ impl Model {
 
         let textures =  { 
             let material = &scene.materials[mesh.material_index as usize];
-
-            // TODO: is this correct??
+            
             let spec_tex_assimp = material.textures
                 .get(&TextureType::Specular)
                 .unwrap()
@@ -95,7 +96,7 @@ impl Model {
                 .borrow();
             let diff_tex = ModelTexture::from_russimp_texture(&*diff_tex_assimp, ModelTextureType::DIFFUSE);
 
-            vec![spec_tex, diff_tex]
+            vec![diff_tex]
         };
 
         let indices: Vec<u32> = mesh.faces.iter().flat_map(

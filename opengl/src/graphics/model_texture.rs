@@ -116,17 +116,6 @@ impl ModelTexture {
         (channels, width, height, flattened_pixels)
     }
 
-    unsafe fn activate_texture_unit(texture_unit: GLenum) -> bool {
-        gl::ActiveTexture(texture_unit);
-        
-        let err = gl::GetError();
-        if err != 0 { 
-            println!("error: problem during activating ModelTexture unit ({err})");
-            return false;
-        }
-        true
-    }
-
     unsafe fn set_options() {
         // TODO: make this configurable?
         gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::REPEAT as i32);	
