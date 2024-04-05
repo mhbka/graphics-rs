@@ -2,10 +2,7 @@ use std::rc::Rc;
 use glam::*;
 use super::{model_mesh::ModelMesh, model_texture::{ModelTexture, ModelTextureType}, shader::Shader, vertex::Vertex};
 use russimp::{
-    mesh::Mesh, 
-    node::Node, 
-    scene::{PostProcess, Scene},
-    material::TextureType
+    material::TextureType, mesh::Mesh, node::Node, scene::{PostProcess, Scene}, Vector3D
 };
 
 pub struct Model {
@@ -62,12 +59,16 @@ impl Model {
     /// Converts a russimp Mesh into our ModelMesh.
     unsafe fn process_mesh(mesh: &Mesh, scene: &Scene) -> ModelMesh {
         let mut vertices = Vec::with_capacity(mesh.vertices.len());
-        for i in 0..mesh.vertices.len() {
+        println!("{}", mesh.vertices.len());
+        for i in 0..(mesh.vertices.len() - 1) {
             vertices.push(
                 {
                     let pos_r = mesh.vertices[i];
                     let norm_r = mesh.normals[i];
-                    let tex_r = mesh.texture_coords[i].unwrap()[0]; // assumes there's always a texture, also we are only using 1st texture coord
+                    let tex_r = match mesh.texture_coords[i].as_deref() {
+                        Some(v) => v[0],
+                        None => Vector3D { x: 0.0, y: 0.0, z: 0.0 },
+                    };
 
                     let position = Vec3::new(pos_r.x, pos_r.y, pos_r.z);
                     let normal = Vec3::new(norm_r.x, norm_r.y, norm_r.z);
@@ -79,26 +80,26 @@ impl Model {
         }
 
         let textures =  { 
-            let material = scene.materials[mesh.material_index as usize];
+            let material = &scene.materials[mesh.material_index as usize];
 
             // TODO: is this correct??
             let spec_tex_assimp = material.textures
                 .get(&TextureType::Specular)
                 .unwrap()
                 .borrow();
-            let spec_tex = ModelTexture::from_russimp_texture(*spec_tex_assimp, ModelTextureType::SPECULAR);
+            let spec_tex = ModelTexture::from_russimp_texture(&*spec_tex_assimp, ModelTextureType::SPECULAR);
 
             let diff_tex_assimp = material.textures
                 .get(&TextureType::Diffuse)
                 .unwrap()
                 .borrow();
-            let diff_tex = ModelTexture::from_russimp_texture(*diff_tex_assimp, ModelTextureType::DIFFUSE);
+            let diff_tex = ModelTexture::from_russimp_texture(&*diff_tex_assimp, ModelTextureType::DIFFUSE);
 
             vec![spec_tex, diff_tex]
         };
 
         let indices: Vec<u32> = mesh.faces.iter().flat_map(
-            |f| f.0 // should be ok since we used PostProcess::Triangulate
+            |f| f.0.clone() // should be ok since we used PostProcess::Triangulate
             )
             .collect();
 

@@ -1,7 +1,7 @@
 use crate::global_state::{GLFWState, GameState, GraphicsState};
 
 pub mod light;
-
+pub mod model;
 
 /// A Render trait consists of 2 stages: initialization and render.
 /// Initialization is called within gl_init, while render is called on each game loop.

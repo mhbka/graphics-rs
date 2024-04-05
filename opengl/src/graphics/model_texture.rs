@@ -59,7 +59,7 @@ impl ModelTexture {
     }
 
     /// Transform a russimp Texture to a native ModelTexture.
-    pub unsafe fn from_russimp_texture(texture: Texture, variant: ModelTextureType) -> Self {
+    pub unsafe fn from_russimp_texture(texture: &Texture, variant: ModelTextureType) -> Self {
         let mut id = 0;
         gl::GenTextures(1, &mut id as *mut u32);
         gl::BindTexture(gl::TEXTURE_2D, id);
@@ -67,7 +67,7 @@ impl ModelTexture {
         ModelTexture::set_options();
 
         // TODO: verify that DataContent::Bytes is also 4 bytes per pixel
-        let pixel_data_ptr = match texture.data {
+        let pixel_data_ptr = match &texture.data {
             DataContent::Bytes(bytes) => bytes.as_ptr() as *const GLvoid,
             DataContent::Texel(texels) => texels.as_ptr() as *const GLvoid
         };
@@ -89,7 +89,7 @@ impl ModelTexture {
         gl::GenerateMipmap(gl::TEXTURE_2D);
 
         ModelTexture {
-            filename: texture.filename, 
+            filename: texture.filename.clone(), 
             id,
             variant
         }

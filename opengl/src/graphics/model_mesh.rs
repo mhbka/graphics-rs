@@ -29,6 +29,7 @@ impl ModelMesh {
     }
 
     /// Draw this ModelMesh.
+    /// Sets texture uniforms named by the format `material.{TextureType}.{index}`.
     pub unsafe fn draw(&self, shader: &mut Shader) {
         let mut diffuse_i = 1;
         let mut specular_i = 1;
@@ -52,7 +53,7 @@ impl ModelMesh {
 
             gl::BindTexture(gl::TEXTURE_2D, texture.id); 
         }
-        gl::ActiveTexture(gl::TEXTURE0); // TODO: is this necessary, or just a precaution?
+        gl::ActiveTexture(gl::TEXTURE0); // just a precaution?
 
         self.vao.bind();
         gl::DrawElements(gl::TRIANGLES, self.indices.len() as i32, gl::UNSIGNED_INT, 0 as *const GLvoid);

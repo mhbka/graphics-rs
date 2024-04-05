@@ -28,8 +28,7 @@ pub enum UniformType {
     // TODO: Add other types as they become necessary (including any match statements using Uniform)
 }
 
-
-/// Wrapper struct for a shader program; encapsulates and tracks/sets shader program state.
+/// Wrapper struct for a shader program, consisting of a vertex and fragment shader.
 #[derive(Debug)]
 pub struct Shader {
     vert_shader_name: String,
@@ -40,7 +39,7 @@ pub struct Shader {
     uniforms: Vec<Uniform>
 }
 
-/// Wrapper implementations for OpenGL shaders.
+// Public impls
 impl Shader {
     /// Create and use a new shader program, with the specified vertex and fragment shaders.
     pub unsafe fn new(vert_shader_name: &str, frag_shader_name: &str) -> Self {
@@ -105,7 +104,7 @@ impl Shader {
 }
 
 
-/// Private implementations
+/// Private impls
 impl Shader {
     unsafe fn compile_shader(shader_source: &str, shader_type: GLenum) -> u32 {
         let c_str = CString::new(shader_source).unwrap();

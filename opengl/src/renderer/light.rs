@@ -3,24 +3,21 @@ use crate::{
     engine::transform::{get_transform, get_transform_matrices}, 
     global_state::*, 
     graphics::{
-        shader::{Shader, Uniform, UniformType}, model_texture::{Texture, TextureType}, vao::{VertexAttr, VAO}
+        shader::{Shader, Uniform, UniformType},
+        model_texture::{ModelTexture, ModelTextureType}, 
+        vao::{VertexAttr, VAO}
     }
 };
 use glam::*;
 use super::Renderer;
 
 pub struct LightingRenderer {
+    vao: VAO,
     pos_data: Vec<Vec3>
 }
 
 impl LightingRenderer {
-    pub fn new(pos_data: Vec<Vec3>) -> Self {
-        LightingRenderer { pos_data }
-    }
-}
-
-impl Renderer for LightingRenderer {
-    unsafe fn init(&mut self) -> GraphicsState {
+    pub unsafe fn new(pos_data: Vec<Vec3>) -> Self {
         // load vertex data
         let vertex_data: Vec<f32> = Vec::from(data::VERTEX_NORM_TEX_DATA);
 
@@ -34,17 +31,23 @@ impl Renderer for LightingRenderer {
         gl::Enable(gl::DEPTH_TEST);
         vao.check_binding();
 
+        LightingRenderer {vao, pos_data }
+    }
+}
+
+impl Renderer for LightingRenderer {
+    unsafe fn init(&mut self) -> GraphicsState {
         // Shader for lighting
         let mut lighting_shader = unsafe { Shader::new("light/lighting", "light/lighting") };
         unsafe {
-                // texture
+                // ModelTexture
                 gl::ActiveTexture(gl::TEXTURE0);
-                Texture::new("container2.png", TextureType::DIFFUSE);
+                ModelTexture::new("container2.png", ModelTextureType::DIFFUSE);
                 lighting_shader.set_uniform(Uniform::new("material.diffuse".to_owned(), UniformType::Int1(0)));
 
-                // specular texture + shininess
+                // specular ModelTexture + shininess
                 gl::ActiveTexture(gl::TEXTURE1);
-                Texture::new("container2_specular.png", TextureType::SPECULAR);
+                ModelTexture::new("container2_specular.png", ModelTextureType::SPECULAR);
                 lighting_shader.set_uniform(Uniform::new("material.specular".to_owned(), UniformType::Int1(1)));
                 lighting_shader.set_uniform(Uniform::new("material.shininess".to_owned(), UniformType::Float1(32.0)));
         };
@@ -60,7 +63,7 @@ impl Renderer for LightingRenderer {
             println!("note: initialization success"); 
         }
 
-        GraphicsState::new(vao, vec![lighting_shader, light_shader])
+        GraphicsState::new(vec![lighting_shader, light_shader])
     }
 
 
@@ -119,6 +122,7 @@ impl Renderer for LightingRenderer {
     }
 }
 
+// Private impls
 impl LightingRenderer {
     unsafe fn set_pointlight_uniforms(graphics_state: &mut GraphicsState, transform: Mat4, pos: Vec3, color: Vec3, index: u32) {
         let pointlight_str = format!("pointlights[{index}]");
