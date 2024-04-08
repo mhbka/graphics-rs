@@ -53,11 +53,11 @@ vec3 calcSpotLight(SpotLight light);
 
 void main()
 {
-    vec3 outputColor = vec3(texture2D(material.diffuse1, texCoords));
+    vec3 n1 = vec3(texture2D(material.diffuse1, texCoords));
 
-    vec3 nothing = vec3(texture2D(material.specular1, texCoords));
+    vec3 n2 = vec3(texture2D(material.specular1, texCoords));
 
-    FragColor = vec4(outputColor, 1.0);
+    FragColor = vec4(vec3(0.0), 1.0);
 }
 
 /*

@@ -116,7 +116,6 @@ impl Model {
 
     /// Converts a russimp Mesh into our ModelMesh.
     unsafe fn process_mesh(mesh: &Mesh, scene: &Scene, textures: &mut HashMap<String, Rc<RefCell<ModelTexture>>>) -> ModelMesh {
-        println!("cur mesh: {}", mesh.name);
         let mut vertices = Vec::with_capacity(mesh.vertices.len());
         for i in 0..mesh.vertices.len() {
             vertices.push(
@@ -176,6 +175,8 @@ impl Model {
             |f| f.0.clone() // should be ok since we used PostProcess::Triangulate
             )
             .collect();
+
+        println!("note: processed mesh: {}, vertices: {}, indices: {}", mesh.name, mesh.vertices.len(), indices.len());
 
         unsafe { ModelMesh::new(vertices, textures, indices) }
     }

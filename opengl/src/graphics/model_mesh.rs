@@ -39,7 +39,7 @@ impl ModelMesh {
 
         for (i, texture) in self.textures.iter().enumerate() {
             let texture = texture.borrow();
-            gl::ActiveTexture(gl::TEXTURE0 + i as u32);
+            gl::ActiveTexture(gl::TEXTURE0 + 1 + i as u32);
 
             let index = match texture.variant {
                 ModelTextureType::DIFFUSE => {

@@ -28,7 +28,7 @@ impl Renderer for ModelRenderer {
         gl::Clear(gl::COLOR_BUFFER_BIT);
         gl::Clear(gl::DEPTH_BUFFER_BIT);
 
-        let transform = get_transform(&game_state.camera, Vec3::ZERO, Vec3::ONE);
+        let transform = get_transform(&game_state.camera, Vec3::ONE, Vec3::ONE);
         graphics_state.shaders[0].use_program();
         graphics_state.shaders[0].set_uniform(
             Uniform::new("transform".to_owned(), UniformType::Matrix4(transform))
