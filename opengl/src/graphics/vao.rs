@@ -62,11 +62,6 @@ impl VAO {
     pub unsafe fn bind(&self) {
         gl::BindVertexArray(self.vao)
     }
-
-    // Getters
-    pub fn vao(&self) -> u32 { self.vao }
-    pub fn vbo(&self) -> u32 { self.vbo }
-    pub fn ebo(&self) -> Option<u32> { self.ebo } 
 }
 
 

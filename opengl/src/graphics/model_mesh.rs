@@ -1,3 +1,6 @@
+use std::rc::Rc;
+use std::cell::RefCell;
+
 use gl::types::GLvoid;
 
 use super::shader::{Shader, Uniform, UniformType};
@@ -10,14 +13,14 @@ use super::vertex::Vertex;
 /// Note: named as such due to conflict with russimp's Mesh type.
 pub struct ModelMesh {
     pub vertices: Vec<Vertex>,
-    pub textures: Vec<ModelTexture>,
+    pub textures: Vec<Rc<RefCell<ModelTexture>>>,
     pub indices: Vec<u32>,
     vao: VAO
 }
 
 impl ModelMesh {
     /// Generate a new ModelMesh including its VAO.
-    pub unsafe fn new(vertices: Vec<Vertex>, textures: Vec<ModelTexture>, indices: Vec<u32>) -> Self {
+    pub unsafe fn new(vertices: Vec<Vertex>, textures: Vec<Rc<RefCell<ModelTexture>>>, indices: Vec<u32>) -> Self {
         let vertex_attrs = Vertex::get_vertex_attrs();
         let vao = VAO::new(Vertex::flatten(&vertices), None, vertex_attrs);
         ModelMesh { vertices, textures, indices, vao }
@@ -28,13 +31,14 @@ impl ModelMesh {
         self.vao.bind();
     }
 
-    /// Draw this ModelMesh.
-    /// Sets texture uniforms named by the format `material.{TextureType}.{index}`.
+    /// Draw this ModelMesh once.
+    /// Sets texture uniforms named by the format `material.{TextureType}{index}`.
     pub unsafe fn draw(&self, shader: &mut Shader) {
-        let mut diffuse_i = 1;
-        let mut specular_i = 1;
+        let mut diffuse_i = 0;
+        let mut specular_i = 0;
 
         for (i, texture) in self.textures.iter().enumerate() {
+            let texture = texture.borrow();
             gl::ActiveTexture(gl::TEXTURE0 + i as u32);
 
             let index = match texture.variant {

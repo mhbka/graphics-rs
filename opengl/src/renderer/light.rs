@@ -31,7 +31,7 @@ impl LightingRenderer {
         gl::Enable(gl::DEPTH_TEST);
         vao.check_binding();
 
-        LightingRenderer {vao, pos_data }
+        LightingRenderer { vao, pos_data }
     }
 }
 

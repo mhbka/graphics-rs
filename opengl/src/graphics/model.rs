@@ -1,9 +1,7 @@
 use glam::*;
 use image::io::Reader as ImageReader;
 use std::{
-    env,
-    cell::RefCell, 
-    rc::Rc
+    cell::{Ref, RefCell}, collections::HashMap, env, rc::Rc
 };
 use super::{
     model_mesh::ModelMesh, 
@@ -25,7 +23,7 @@ pub struct Model {
 
 // public impls
 impl Model {
-    pub unsafe  fn new(folder_path: &str, file_name: &str) -> Self {
+    pub unsafe fn new(folder_path: &str, file_name: &str) -> Self {
         let mut model = Model { meshes: Vec::new() };
         model.load_model(folder_path, file_name);
         model
@@ -55,8 +53,10 @@ impl Model {
 
         Model::add_nonembedded_textures(&mut scene, folder_path);
 
+        let mut model_textures: HashMap<String, Rc<RefCell<ModelTexture>>> = HashMap::new();
+
         if let Some(root) = scene.root.as_ref() {
-            Model::process_node(self, &scene, root);
+            Model::process_node(self, &scene, &mut model_textures, root);
         }
     }
 
@@ -102,20 +102,21 @@ impl Model {
     }
 
     /// Recursively processes a node's meshes + its child nodes.
-    unsafe fn process_node(&mut self, scene: &Scene, node: &Rc<Node>) {
+    unsafe fn process_node(&mut self, scene: &Scene, textures: &mut HashMap<String, Rc<RefCell<ModelTexture>>>, node: &Rc<Node>) {
         for mesh_id in &node.meshes {
             let mesh = &scene.meshes[*mesh_id as usize];
-            let model_mesh = Model::process_mesh(mesh, scene);
+            let model_mesh = Model::process_mesh(mesh, scene, textures);
             self.meshes.push(model_mesh);
         }
 
         for child_node in &*node.children.borrow() { // <- that's abit fucked up
-            Model::process_node(self, scene, &child_node);
+            Model::process_node(self, scene, textures, &child_node);
         }
     }
 
     /// Converts a russimp Mesh into our ModelMesh.
-    unsafe fn process_mesh(mesh: &Mesh, scene: &Scene) -> ModelMesh {
+    unsafe fn process_mesh(mesh: &Mesh, scene: &Scene, textures: &mut HashMap<String, Rc<RefCell<ModelTexture>>>) -> ModelMesh {
+        println!("cur mesh: {}", mesh.name);
         let mut vertices = Vec::with_capacity(mesh.vertices.len());
         for i in 0..mesh.vertices.len() {
             vertices.push(
@@ -136,17 +137,37 @@ impl Model {
         let textures =  { 
             let material = &scene.materials[mesh.material_index as usize];
 
+            // Check if the Texture has been converted before using the filename.
+            // If not, convert to ModelTexture and add to the `textures` hashmap so it can be retrieved again.
+            // Else, clone the Rc out from `textures`.
             let diff_tex_assimp = material.textures
                 .get(&TextureType::Diffuse)
                 .unwrap()
                 .borrow();
-            let diff_tex = ModelTexture::from_russimp_texture(&*diff_tex_assimp, ModelTextureType::DIFFUSE);
+            let diff_tex = match textures.get(&diff_tex_assimp.filename) {
+                Some(tex) => tex.clone(),
+                None => {
+                    let tex = ModelTexture::from_russimp_texture(&*diff_tex_assimp, ModelTextureType::DIFFUSE);
+                    let wrapped_tex = Rc::new(RefCell::new(tex));
+                    textures.insert(diff_tex_assimp.filename.clone(), wrapped_tex.clone());
+                    wrapped_tex
+                },
+            }; 
 
+            // same thing
             let spec_tex_assimp = material.textures
                 .get(&TextureType::Specular)
                 .unwrap()
                 .borrow();
-            let spec_tex = ModelTexture::from_russimp_texture(&*spec_tex_assimp, ModelTextureType::SPECULAR);
+            let spec_tex = match textures.get(&spec_tex_assimp.filename) {
+                Some(tex) => tex.clone(),
+                None => {
+                    let tex = ModelTexture::from_russimp_texture(&*spec_tex_assimp, ModelTextureType::SPECULAR);
+                    let wrapped_tex = Rc::new(RefCell::new(tex));
+                    textures.insert(spec_tex_assimp.filename.clone(), wrapped_tex.clone());
+                    wrapped_tex
+                },
+            }; 
 
             vec![diff_tex, spec_tex]
         };

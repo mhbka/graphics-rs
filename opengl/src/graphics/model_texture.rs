@@ -51,6 +51,8 @@ impl ModelTexture {
 
         gl::GenerateMipmap(gl::TEXTURE_2D);
 
+        println!("generated {variant:?} texture (id: {id}), file: {filename}");
+
         ModelTexture {
             filename: filename.to_owned(), 
             id,
@@ -71,8 +73,7 @@ impl ModelTexture {
             DataContent::Bytes(bytes) => bytes.as_ptr() as *const GLvoid,
             DataContent::Texel(texels) => texels.as_ptr() as *const GLvoid
         };
-        let channels = gl::RGBA; 
-        println!("{}", texture.ach_format_hint); // maybe with this?
+        let channels = gl::RGBA;
 
         gl::TexImage2D(
             gl::TEXTURE_2D, 
@@ -87,6 +88,8 @@ impl ModelTexture {
         );
 
         gl::GenerateMipmap(gl::TEXTURE_2D);
+
+        println!("generated {variant:?} texture (id: {id}), file: {} (from russimp)", texture.filename);
 
         ModelTexture {
             filename: texture.filename.clone(), 

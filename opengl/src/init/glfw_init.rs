@@ -28,6 +28,7 @@ pub fn init(width: u32, height: u32, use_old_ver: bool) -> GLFWState {
     
     // Load window's function pointers into `gl`
     gl::load_with(|s| {window.get_proc_address(s)});
+    println!("note: successfully loaded gl");
 
     // Set viewport + framebuffer size callback
     unsafe { gl::Viewport(0, 0, width as i32, height as i32); }

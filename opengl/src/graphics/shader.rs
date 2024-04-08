@@ -31,8 +31,8 @@ pub enum UniformType {
 /// Wrapper struct for a shader program, consisting of a vertex and fragment shader.
 #[derive(Debug)]
 pub struct Shader {
-    vert_shader_name: String,
-    frag_shader_name: String,
+    vert_shader_path: String,
+    frag_shader_path: String,
     program: u32,
     vertex_shader: u32,
     fragment_shader: u32,
@@ -42,13 +42,13 @@ pub struct Shader {
 // Public impls
 impl Shader {
     /// Create and use a new shader program, with the specified vertex and fragment shaders.
-    pub unsafe fn new(vert_shader_name: &str, frag_shader_name: &str) -> Self {
+    pub unsafe fn new(vert_shader_path: &str, frag_shader_path: &str) -> Self {
         let shader_program = gl::CreateProgram();
 
-        let vertex_shader_source = read_to_string(&format!("assets/shaders/{vert_shader_name}.vert"))
-            .expect(&format!("Can't read {vert_shader_name} vertex shader from file."));
-        let fragment_shader_source = read_to_string(&format!("assets/shaders/{frag_shader_name}.frag"))
-            .expect(&format!("Can't read {frag_shader_name} fragment shader from file."));
+        let vertex_shader_source = read_to_string(&format!("assets/shaders/{vert_shader_path}.vert"))
+            .expect(&format!("Can't read {vert_shader_path} vertex shader from file."));
+        let fragment_shader_source = read_to_string(&format!("assets/shaders/{frag_shader_path}.frag"))
+            .expect(&format!("Can't read {frag_shader_path} fragment shader from file."));
 
         let vertex_shader = Shader::compile_shader(vertex_shader_source.as_str(), gl::VERTEX_SHADER);
         let fragment_shader = Shader::compile_shader(fragment_shader_source.as_str(), gl::FRAGMENT_SHADER);
@@ -64,8 +64,8 @@ impl Shader {
         gl::UseProgram(shader_program);
     
         Shader {
-            vert_shader_name: vert_shader_name.to_owned(),
-            frag_shader_name: frag_shader_name.to_owned(),
+            vert_shader_path: vert_shader_path.to_owned(),
+            frag_shader_path: frag_shader_path.to_owned(),
             program: shader_program,
             vertex_shader,
             fragment_shader,
