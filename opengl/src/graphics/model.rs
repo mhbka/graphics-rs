@@ -1,18 +1,33 @@
-use std::rc::Rc;
 use glam::*;
-use super::{model_mesh::ModelMesh, model_texture::{ModelTexture, ModelTextureType}, shader::Shader, vertex::Vertex};
-use russimp::{
-    material::TextureType, mesh::Mesh, node::Node, scene::{PostProcess, Scene}, Vector3D
+use image::io::Reader as ImageReader;
+use std::{
+    env,
+    cell::RefCell, 
+    rc::Rc
 };
+use super::{
+    model_mesh::ModelMesh, 
+    model_texture::{ModelTexture, ModelTextureType}, 
+    shader::Shader, 
+    vertex::Vertex
+};
+use russimp::{
+    material::{PropertyTypeInfo, TextureType, Texture, DataContent}, 
+    mesh::Mesh, 
+    node::Node, 
+    scene::{PostProcess, Scene}
+};
+
 
 pub struct Model {
     meshes: Vec<ModelMesh>,
 }
 
+// public impls
 impl Model {
-    pub unsafe  fn new(filepath: &str) -> Self {
+    pub unsafe  fn new(folder_path: &str, file_name: &str) -> Self {
         let mut model = Model { meshes: Vec::new() };
-        model.load_model(filepath);
+        model.load_model(folder_path, file_name);
         model
     }
 
@@ -27,8 +42,8 @@ impl Model {
 impl Model {
     /// Loads a model from file using russimp,
     /// and recursively processes its nodes.
-    unsafe fn load_model(&mut self, filepath: &str) {
-        let scene = Scene::from_file(filepath,
+    unsafe fn load_model(&mut self, folder_path: &str, file_name: &str) {
+        let mut scene = Scene::from_file(&format!("{folder_path}/{file_name}"),
         vec![
             PostProcess::Triangulate,
             PostProcess::FlipUVs,
@@ -38,14 +53,51 @@ impl Model {
             ])
              .unwrap();
 
-        for (i, mat) in scene.materials.iter().enumerate() {
-            let texs = &mat.textures;
-            if texs.is_empty() {println!("mat {i} is empty")}
-            else {println!("mat {i} has {} texs", texs.len())}
-        }
-        
+        Model::add_nonembedded_textures(&mut scene, folder_path);
+
         if let Some(root) = scene.root.as_ref() {
             Model::process_node(self, &scene, root);
+        }
+    }
+
+    /// Add non-embedded textures to materials that have them
+    /// using image data from specified image files.
+    fn add_nonembedded_textures(scene: &mut Scene, folder_path: &str) {
+        for mat in &mut scene.materials {
+            for property in &mat.properties {
+                if property.semantic != TextureType::None && property.key == "$tex.file" { // if is actual TextureType and is a filename,
+                    if let None = mat.textures.get(&property.semantic) { // and texture doesn't exist yet, then add it.
+                        let file_name = match &property.data {
+                            PropertyTypeInfo::String(filename) => filename,
+                            _ => panic!("MaterialProperty with key '$tex.file' has non-string data."),
+                        };
+                        println!("note: loading non-embedded texture ({:?}) from {}", property.semantic, file_name);
+                        let texture_path = format!("{folder_path}/{file_name}");
+
+                        // load image and collect pixels into Vec<u8>
+                        let tex_img = ImageReader::open(&texture_path)
+                            .expect(&format!("Couldn't open texture image at {texture_path:?}"))
+                            .decode()
+                            .expect(&format!("Couldn't decode texture image at {texture_path:?}"))
+                            .into_rgba8();
+                        let mut tex_pixels = Vec::with_capacity((tex_img.height() * tex_img.width() * 4) as usize);
+                        for pixel in tex_img.pixels() {
+                            tex_pixels.extend_from_slice(&pixel.0);
+                        }
+
+                        // create a new russimp texture and add to textures hashmap
+                        let texture = Texture {
+                            height: tex_img.height(),
+                            width: tex_img.width(),
+                            filename: file_name.clone(),
+                            ach_format_hint: String::new(), // idk
+                            data: DataContent::Bytes(tex_pixels)
+                        };
+                        mat.textures.insert(property.semantic, Rc::new(RefCell::new(texture)));
+                    }
+                }
+                
+            }
         }
     }
 
@@ -70,7 +122,7 @@ impl Model {
                 {
                     let pos_r = mesh.vertices[i];
                     let norm_r = mesh.normals[i];
-                    let tex_r = mesh.texture_coords[0].as_deref().unwrap()[i];
+                    let tex_r = mesh.texture_coords[0].as_deref().unwrap()[i]; // assumes it always exists
 
                     let position = Vec3::new(pos_r.x, pos_r.y, pos_r.z);
                     let normal = Vec3::new(norm_r.x, norm_r.y, norm_r.z);
@@ -83,12 +135,6 @@ impl Model {
 
         let textures =  { 
             let material = &scene.materials[mesh.material_index as usize];
-            
-            let spec_tex_assimp = material.textures
-                .get(&TextureType::Specular)
-                .unwrap()
-                .borrow();
-            let spec_tex = ModelTexture::from_russimp_texture(&*spec_tex_assimp, ModelTextureType::SPECULAR);
 
             let diff_tex_assimp = material.textures
                 .get(&TextureType::Diffuse)
@@ -96,7 +142,13 @@ impl Model {
                 .borrow();
             let diff_tex = ModelTexture::from_russimp_texture(&*diff_tex_assimp, ModelTextureType::DIFFUSE);
 
-            vec![diff_tex]
+            let spec_tex_assimp = material.textures
+                .get(&TextureType::Specular)
+                .unwrap()
+                .borrow();
+            let spec_tex = ModelTexture::from_russimp_texture(&*spec_tex_assimp, ModelTextureType::SPECULAR);
+
+            vec![diff_tex, spec_tex]
         };
 
         let indices: Vec<u32> = mesh.faces.iter().flat_map(

@@ -18,7 +18,7 @@ fn main() {
 
     let (width, height) = (800, 600);
 
-    let model = unsafe { Model::new("assets/models/survival_backpack/backpack.obj") };
+    let model = unsafe { Model::new("assets/models/survival_backpack", "backpack.obj") };
 
     let mut renderer = unsafe { LightingRenderer::new(Vec::from(data::CUBE_POSITIONS)) };
 
