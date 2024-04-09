@@ -122,9 +122,9 @@ impl Renderer for LightingRenderer {
     }
 }
 
-// Private impls
+// For setting light uniforms - you can use them in other renderers
 impl LightingRenderer {
-    unsafe fn set_pointlight_uniforms(graphics_state: &mut GraphicsState, transform: Mat4, pos: Vec3, color: Vec3, index: u32) {
+    pub unsafe fn set_pointlight_uniforms(graphics_state: &mut GraphicsState, transform: Mat4, pos: Vec3, color: Vec3, index: u32) {
         let pointlight_str = format!("pointlights[{index}]");
 
         let light_shader = &mut graphics_state.shaders[1];
@@ -139,8 +139,7 @@ impl LightingRenderer {
     }
     
 
-    unsafe fn set_flashlight_uniforms(lighting_shader: &mut Shader, game_state: &GameState) {
-        
+    pub unsafe fn set_flashlight_uniforms(lighting_shader: &mut Shader, game_state: &GameState) { 
         let light_pos_uniform = UniformType::Float3(game_state.camera.position.x, game_state.camera.position.y, game_state.camera.position.z);
         lighting_shader.set_uniform(Uniform::new("spotlight.position".to_owned(), light_pos_uniform));
 
@@ -157,12 +156,12 @@ impl LightingRenderer {
         lighting_shader.set_uniform(Uniform::new("spotlight.quadratic".to_owned(), UniformType::Float1(0.0019)));
     }
 
-    unsafe fn set_directional_light_uniforms(lighting_shader: &mut Shader) {
+    pub unsafe fn set_directional_light_uniforms(lighting_shader: &mut Shader) {
         lighting_shader.set_uniform(Uniform::new("dirlight.direction".to_owned(), UniformType::Float3(1.0, 1.0, 1.0)));
         lighting_shader.set_uniform(Uniform::new("dirlight.color".to_owned(), UniformType::Float3(1.0, 1.0, 1.0)));
     }
 
-    unsafe fn set_transform_uniforms(lighting_shader: &mut Shader, game_state: &GameState, object_position: Vec3) { 
+    pub unsafe fn set_transform_uniforms(lighting_shader: &mut Shader, game_state: &GameState, object_position: Vec3) { 
         let (projection, view, model) = get_transform_matrices(&game_state.camera, object_position, Vec3::ONE);
         
         lighting_shader.set_uniform(Uniform::new("projection".to_owned(), UniformType::Matrix4(projection)));

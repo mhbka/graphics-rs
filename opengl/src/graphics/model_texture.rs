@@ -5,7 +5,8 @@ use gl::types::*;
 #[derive(Debug)]
 pub enum ModelTextureType {
     DIFFUSE,
-    SPECULAR
+    SPECULAR,
+    SHININESS,
 }
 
 impl ToString for ModelTextureType {
@@ -13,6 +14,18 @@ impl ToString for ModelTextureType {
         match *self {
             ModelTextureType::DIFFUSE => "diffuse".to_owned(),
             ModelTextureType::SPECULAR => "specular".to_owned(),
+            ModelTextureType::SHININESS => "shininess".to_owned(),
+        }
+    }
+}
+
+impl From<TextureType> for ModelTextureType {
+    fn from(value: TextureType) -> Self {
+        match value {
+            TextureType::Diffuse => ModelTextureType::DIFFUSE,
+            TextureType::Specular => ModelTextureType::SPECULAR,
+            TextureType::Shininess => ModelTextureType::SHININESS,
+            _ => todo!("Cover other TextureType cases for ModelTextureType conversion")
         }
     }
 }

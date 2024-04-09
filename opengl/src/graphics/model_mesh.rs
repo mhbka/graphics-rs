@@ -33,6 +33,7 @@ impl ModelMesh {
     pub unsafe fn draw(&self, shader: &mut Shader) {
         let mut diffuse_i = 0;
         let mut specular_i = 0;
+        let mut shininess_i = 0;
 
         for (i, texture) in self.textures.iter().enumerate() {
             let texture = texture.borrow();
@@ -47,6 +48,10 @@ impl ModelMesh {
                     specular_i +=1;
                     specular_i.to_string()
                 },
+                ModelTextureType::SHININESS => {
+                    shininess_i +=1;
+                    shininess_i.to_string()
+                },
             };
 
             let material_str = format!("{}{}", texture.variant.to_string(), index);
@@ -59,11 +64,6 @@ impl ModelMesh {
         self.activate();
         // gl::DrawElements(gl::TRIANGLES, self.indices.len() as i32, gl::UNSIGNED_INT, 0 as *const GLvoid);
         gl::DrawArrays(gl::TRIANGLES, 0, self.vertices.len() as i32);
-
-        let err = gl::GetError();
-        if err != 0 {
-            println!("error: {err}");
-        }
 
         gl::BindVertexArray(0); // just a precaution?
     }
