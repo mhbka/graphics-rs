@@ -79,6 +79,7 @@ impl Model {
                             .expect(&format!("Couldn't open texture image at {texture_path:?}"))
                             .decode()
                             .expect(&format!("Couldn't decode texture image at {texture_path:?}"))
+                            .flipv()
                             .into_rgba8();
                         let mut tex_pixels = Vec::with_capacity((tex_img.height() * tex_img.width() * 4) as usize);
                         for pixel in tex_img.pixels() {

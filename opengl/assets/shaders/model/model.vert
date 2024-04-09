@@ -12,7 +12,6 @@ out vec2 texCoords;
 
 void main()
 {
-    vec4 _ = transform * vec4(aPos, 1.0);
     gl_Position = vec4(aPos, 1.0);
 
     fragPos = aPos;

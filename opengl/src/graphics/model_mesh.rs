@@ -1,8 +1,5 @@
 use std::rc::Rc;
 use std::cell::RefCell;
-
-use gl::types::GLvoid;
-
 use super::shader::{Shader, Uniform, UniformType};
 use super::model_texture::{ModelTexture, ModelTextureType};
 use super::vao::VAO;
@@ -39,7 +36,7 @@ impl ModelMesh {
 
         for (i, texture) in self.textures.iter().enumerate() {
             let texture = texture.borrow();
-            gl::ActiveTexture(gl::TEXTURE0 + 1 + i as u32);
+            gl::ActiveTexture(gl::TEXTURE0 + i as u32);
 
             let index = match texture.variant {
                 ModelTextureType::DIFFUSE => {
@@ -59,8 +56,15 @@ impl ModelMesh {
         }
         gl::ActiveTexture(gl::TEXTURE0); // just a precaution?
 
-        self.vao.bind();
-        gl::DrawElements(gl::TRIANGLES, self.indices.len() as i32, gl::UNSIGNED_INT, 0 as *const GLvoid);
+        self.activate();
+        // gl::DrawElements(gl::TRIANGLES, self.indices.len() as i32, gl::UNSIGNED_INT, 0 as *const GLvoid);
+        gl::DrawArrays(gl::TRIANGLES, 0, self.vertices.len() as i32);
+
+        let err = gl::GetError();
+        if err != 0 {
+            println!("error: {err}");
+        }
+
         gl::BindVertexArray(0); // just a precaution?
     }
 }
