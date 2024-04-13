@@ -59,7 +59,7 @@ const float SPC_W = 1.0;
 void main()
 {
     vec3 outputColor = vec3(0.0);
-
+    
     outputColor += calcSpotLight(spotlight);
     outputColor += calcDirLight(dirlight); 
     for (int i=0; i<NR_POINTLIGHTS; i++) {
@@ -69,7 +69,7 @@ void main()
     FragColor = vec4(outputColor, 1.0);
 }
 
-// Get's the weighted light components at a fragment, given a material and some texture coordinates
+// Gets weighted light components at a fragment, given a material and some texture coordinates
 LightComponents getLightComponents(Material mat, vec2 coords)
 {
     vec3 ambient = AMB_W * vec3(texture2D(mat.diffuse1, coords));

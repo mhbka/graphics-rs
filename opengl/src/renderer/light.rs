@@ -73,33 +73,9 @@ impl Renderer for LightingRenderer {
         gl::Clear(gl::COLOR_BUFFER_BIT);
         gl::Clear(gl::DEPTH_BUFFER_BIT);
 
-        // Draw light cubes for point lights, using light shader
-        for i in 0..5 {
-            let time = glfw_state.glfw.get_time() as f32;
-            let pos =  i as f32 * match i {
-                0 => Vec3::new(time.sin(), time.sin(), 0.0),
-                1 => Vec3::new(time.cos(), time.cos(), 0.0),
-                2 => Vec3::new(time.sin(), 0.0, time.sin()),
-                3 => Vec3::new(time.cos(), 0.0, time.cos()),
-                4 => Vec3::new(time.sin(), time.sin(), time.cos()),
-                _ => panic!(),
-            };
-            let color = match i {
-                0 => Vec3::new(1.0, 0.0, 0.0),
-                1 => Vec3::new(0.0, 1.0, 0.0),
-                2 => Vec3::new(0.0, 0.0, 1.0),
-                3 => Vec3::new(1.0, 0.0, 1.0),
-                4 => Vec3::new(1.0, 1.0, 0.0),
-                _ => panic!(),
-            };
-
-            let transform = get_transform(&game_state.camera, pos, 0.1 * Vec3::ONE);
-
-            LightingRenderer::set_pointlight_uniforms(graphics_state, transform, pos, color, i); //also does shading for actual cubes
-
-            graphics_state.shaders[1].use_program();
-            gl::DrawArrays(gl::TRIANGLES, 0, 36);
-        }
+        // Draw and set uniforms for pointlights 
+        graphics_state.shaders[1].use_program();
+        LightingRenderer::draw_pointlights(game_state, glfw_state, graphics_state);
 
         // Draw and shade actual cubes using lighting shader
         graphics_state.shaders[0].use_program();
@@ -122,8 +98,35 @@ impl Renderer for LightingRenderer {
     }
 }
 
+
 // For setting light uniforms - you can use them in other renderers
 impl LightingRenderer {
+    pub unsafe fn draw_pointlights(game_state: &GameState, glfw_state: &GLFWState, graphics_state: &mut GraphicsState) {
+        for i in 0..5 {
+            let time = glfw_state.glfw.get_time() as f32;
+            let pos =  i as f32 * match i {
+                0 => Vec3::new(time.sin(), time.sin(), 0.0),
+                1 => Vec3::new(time.cos(), time.cos(), 0.0),
+                2 => Vec3::new(time.sin(), 0.0, time.sin()),
+                3 => Vec3::new(time.cos(), 0.0, time.cos()),
+                4 => Vec3::new(time.sin(), time.sin(), time.cos()),
+                _ => panic!(),
+            };
+            let color = match i {
+                0 => Vec3::new(1.0, 0.0, 0.0),
+                1 => Vec3::new(0.0, 1.0, 0.0),
+                2 => Vec3::new(0.0, 0.0, 1.0),
+                3 => Vec3::new(1.0, 0.0, 1.0),
+                4 => Vec3::new(1.0, 1.0, 0.0),
+                _ => panic!(),
+            };
+
+            let transform = get_transform(&game_state.camera, pos, 0.1 * Vec3::ONE);
+            LightingRenderer::set_pointlight_uniforms(graphics_state, transform, pos, color, i); //also does shading for actual cubes
+            gl::DrawArrays(gl::TRIANGLES, 0, 36);
+        }
+    }
+
     pub unsafe fn set_pointlight_uniforms(graphics_state: &mut GraphicsState, transform: Mat4, pos: Vec3, color: Vec3, index: u32) {
         let pointlight_str = format!("pointlights[{index}]");
 

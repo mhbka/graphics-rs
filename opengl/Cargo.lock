@@ -936,6 +936,7 @@ dependencies = [
  "glam",
  "glfw",
  "image",
+ "once_cell",
  "russimp",
 ]
 

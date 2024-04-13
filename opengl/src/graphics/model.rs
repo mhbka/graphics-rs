@@ -158,7 +158,7 @@ impl Model {
 
                     let position = Vec3::new(pos_r.x, pos_r.y, pos_r.z);
                     let normal = Vec3::new(norm_r.x, norm_r.y, norm_r.z);
-                    let texture_coords = Vec2::new(tex_r.x, tex_r.y); // assumes that z-coord is not used (at least for now)
+                    let texture_coords = Vec2::new(tex_r.x, tex_r.y);
 
                     Vertex { position, normal, texture_coords }
                 }
@@ -168,11 +168,8 @@ impl Model {
         let textures =  { 
             let material = &scene.materials[mesh.material_index as usize];
 
-            println!("{:?}", material.properties);
-
             let mut texs = Vec::with_capacity(3);
             let tex_types = [TextureType::Diffuse, TextureType::Specular, TextureType::Shininess];
-
             for tex_type in tex_types {
                 let assimp_tex = material.textures
                 .get(&tex_type)
@@ -194,11 +191,9 @@ impl Model {
         };
 
         let indices: Vec<u32> = mesh.faces.iter().flat_map(
-            |f| f.0.clone() // should be ok since we used PostProcess::Triangulate
+            |f| f.0.clone() // assume every face is a triangle since we used PostProcess::Triangulate
             )
             .collect();
-
-        println!("note: processed mesh: {}, vertices: {}, indices: {}", mesh.name, mesh.vertices.len(), indices.len());
 
         unsafe { ModelMesh::new(vertices, textures, indices) }
     }
